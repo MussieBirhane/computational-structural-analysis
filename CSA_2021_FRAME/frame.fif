@@ -1,0 +1,297 @@
+M GLOBALVAR,#h("frame.f90",9)
+ V NNODE,GLOBALVAR_MP_nnode,Integer,int,,0,#t("frame.f90",12)
+ V NELE,GLOBALVAR_MP_nele,Integer,int,,0,#t("frame.f90",12)
+ V NSEC,GLOBALVAR_MP_nsec,Integer,int,,0,#t("frame.f90",12)
+ V NMAT,GLOBALVAR_MP_nmat,Integer,int,,0,#t("frame.f90",12)
+ V ISEC,GLOBALVAR_MP_isec,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V IMAT,GLOBALVAR_MP_imat,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V IN,GLOBALVAR_MP_in,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",14)
+ V COORD,GLOBALVAR_MP_coord,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V CSEC,GLOBALVAR_MP_csec,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V CMAT,GLOBALVAR_MP_cmat,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V NDOF,GLOBALVAR_MP_ndof,Integer,int,,0,#t("frame.f90",19)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V ELOADS,GLOBALVAR_MP_eloads,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",24)
+ V VLOADS,GLOBALVAR_MP_vloads,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",25)
+ V PRES,GLOBALVAR_MP_pres,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",26)
+ V VK,GLOBALVAR_MP_vk,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",30)
+ V ST,GLOBALVAR_MP_st,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",31)
+ V EQFG,GLOBALVAR_MP_eqfg,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",32)
+ V VDISP,GLOBALVAR_MP_vdisp,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",36)
+EM
+P FRAME:main,#h("frame.f90",45)
+ V TITLE,title,Character(Len=80),Char[80],,0,#t("frame.f90",48)
+EP
+S GEOMET,GEOMET,#h("frame.f90",78)
+ V I,i,Integer,int,,0,#t("frame.f90",80)
+ V J,j,Integer,int,,0,#t("frame.f90",80)
+ V IDNODE,idnode,Integer,int,,0,#t("frame.f90",80)
+ V IDSEC,idsec,Integer,int,,0,#t("frame.f90",80)
+ V IDMAT,idmat,Integer,int,,0,#t("frame.f90",80)
+ V IDELE,idele,Integer,int,,0,#t("frame.f90",80)
+ V ICODE,icode,Integer,int,,0,#t("frame.f90",80)
+ V REC,rec,Character(Len=80),Char[80],,0,#t("frame.f90",81)
+ V NNODE,GLOBALVAR_MP_nnode,Integer,int,,0,#t("frame.f90",12)
+ V NELE,GLOBALVAR_MP_nele,Integer,int,,0,#t("frame.f90",12)
+ V NSEC,GLOBALVAR_MP_nsec,Integer,int,,0,#t("frame.f90",12)
+ V NMAT,GLOBALVAR_MP_nmat,Integer,int,,0,#t("frame.f90",12)
+ V ISEC,GLOBALVAR_MP_isec,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V IMAT,GLOBALVAR_MP_imat,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V IN,GLOBALVAR_MP_in,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",14)
+ V COORD,GLOBALVAR_MP_coord,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V CSEC,GLOBALVAR_MP_csec,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V CMAT,GLOBALVAR_MP_cmat,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ES
+S SCODE,SCODE,#h("frame.f90",208)
+ V NSLAVE,nslave,Integer,int,,0,#t("frame.f90",210)
+ V I,i,Integer,int,,0,#t("frame.f90",210)
+ V J,j,Integer,int,,0,#t("frame.f90",210)
+ V IDNODE,idnode,Integer,int,,0,#t("frame.f90",210)
+ V REC,rec,Character(Len=80),Char[80],,0,#t("frame.f90",211)
+ V NNODE,GLOBALVAR_MP_nnode,Integer,int,,0,#t("frame.f90",12)
+ V NDOF,GLOBALVAR_MP_ndof,Integer,int,,0,#t("frame.f90",19)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V NRES,nres,Integer,int,,0,#t("frame.f90",210)
+ V NLINK,nlink,Integer,int,,0,#t("frame.f90",210)
+ V JDIR,jdir,Integer,int,,0,#t("frame.f90",210)
+ V NMAST,nmast,Integer,int,,0,#t("frame.f90",210)
+ES
+S LOADS,LOADS,#h("frame.f90",281)
+ V E1,e1,Real(Kind=2),double,,0,#t("frame.f90",287)
+ V EM,em,Real(Kind=2),double,,0,#t("frame.f90",287)
+ V E2,e2,Real(Kind=2),double,,0,#t("frame.f90",287)
+ V I,i,Integer,int,,0,#t("frame.f90",284)
+ V J,j,Integer,int,,0
+ V IDNODE,idnode,Integer,int,,0,#t("frame.f90",284)
+ V IDELE,idele,Integer,int,,0,#t("frame.f90",284)
+ V REC,rec,Character(Len=80),Char[80],,0,#t("frame.f90",288)
+ V NNODE,GLOBALVAR_MP_nnode,Integer,int,,0,#t("frame.f90",12)
+ V NELE,GLOBALVAR_MP_nele,Integer,int,,0,#t("frame.f90",12)
+ V NNL,nnl,Integer,int,,0,#t("frame.f90",284)
+ V JDOF,jdof,Integer,int,,0,#t("frame.f90",284)
+ V NDOF,GLOBALVAR_MP_ndof,Integer,int,,0,#t("frame.f90",19)
+ V NEL,nel,Integer,int,,0,#t("frame.f90",284)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V NEP,nep,Integer,int,,0,#t("frame.f90",285)
+ V ELOADS,GLOBALVAR_MP_eloads,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",24)
+ V NTEND,ntend,Integer,int,,0,#t("frame.f90",285)
+ V VLOADS,GLOBALVAR_MP_vloads,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",25)
+ V IDTEND,idtend,Integer,int,,0,#t("frame.f90",285)
+ V PRES,GLOBALVAR_MP_pres,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",26)
+ V PFORCE,pforce,Real(Kind=2),double,,0,#t("frame.f90",286)
+ V ELOAD,eload,Real(Kind=2),double,,1,f(1:5),#t("frame.f90",286)
+ V JDIR,jdir,Integer,int,,0,#t("frame.f90",284)
+ V PRE,pre,Real(Kind=2),double,,1,f(1:4),#t("frame.f90",287)
+ V FP,fp,Real(Kind=2),double,,0,#t("frame.f90",287)
+ES
+S ASSEMB,ASSEMB,#h("frame.f90",428)
+ V I,i,Integer,int,,0,#t("frame.f90",430)
+ V NE,ne,Integer,int,,0,#t("frame.f90",430)
+ V NCODE,ncode,Integer,int,,1,f(1:6),#t("frame.f90",430)
+ V N1,n1,Integer,int,,0
+ V N2,n2,Integer,int,,0
+ V IC,ic,Integer,int,,0
+ V J,j,Integer,int,,0,#t("frame.f90",430)
+ V JC,jc,Integer,int,,0
+ V NELE,GLOBALVAR_MP_nele,Integer,int,,0,#t("frame.f90",12)
+ V IN,GLOBALVAR_MP_in,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",14)
+ V NDOF,GLOBALVAR_MP_ndof,Integer,int,,0,#t("frame.f90",19)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V VLOADS,GLOBALVAR_MP_vloads,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",25)
+ V VK,GLOBALVAR_MP_vk,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",30)
+ V ST,GLOBALVAR_MP_st,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",31)
+ V EQFG,GLOBALVAR_MP_eqfg,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",32)
+ES
+S MKK,MKK,#h("frame.f90",478)
+ V CURV,curv,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V E1,e1,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V EM,em,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V WW,ww,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V E2,e2,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V TMP,tmp,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",482)
+ V T,t,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",482)
+ V EQF,eqf,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",482)
+ V ST,GLOBALVAR_MP_st,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",31)
+ V PG,pg,Real,float,,0
+ V QQ,qq,Real,float,,0
+ V I,i,Integer,int,,0,#t("frame.f90",481)
+ V NE,ne,Integer,int,d,0
+ V COEF_B,coef_b,Real,float,,0
+ V N1,n1,Integer,int,,0,#t("frame.f90",481)
+ V N2,n2,Integer,int,,0,#t("frame.f90",481)
+ V J,j,Integer,int,,0,#t("frame.f90",481)
+ V DELTA_TM,delta_tm,Real,float,,0
+ V FH,fh,Real,float,,0
+ V DELTA_TD,delta_td,Real,float,,0
+ V FM,fm,Real,float,,0
+ V ISC,isc,Integer,int,,0,#t("frame.f90",481)
+ V ISEC,GLOBALVAR_MP_isec,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V IMT,imt,Integer,int,,0,#t("frame.f90",481)
+ V DX,dx,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V DY,dy,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V AL,al,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V CA,ca,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V SA,sa,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V AA,aa,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V AJ,aj,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V AH,ah,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V CHI,chi,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V IMAT,GLOBALVAR_MP_imat,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V EMOD,emod,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V COEF_A,coef_a,Real,float,,0
+ V IN,GLOBALVAR_MP_in,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",14)
+ V POISSON,poisson,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V COORD,GLOBALVAR_MP_coord,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V ALPHA,alpha,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V CSEC,GLOBALVAR_MP_csec,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V WEIGHT,weight,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V CMAT,GLOBALVAR_MP_cmat,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V GMOD,gmod,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V COEF_C,coef_c,Real,float,,0
+ V PHI,phi,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V ELOADS,GLOBALVAR_MP_eloads,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",24)
+ V PX,px,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V PY1,py1,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V PY2,py2,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V DTBOT,dtbot,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V PRES,GLOBALVAR_MP_pres,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",26)
+ V DTTOP,dttop,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V TETA1,teta1,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V EQFG,GLOBALVAR_MP_eqfg,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",32)
+ V TETA2,teta2,Real(Kind=2),double,,0,#t("frame.f90",482)
+ V FP,fp,Real(Kind=2),double,,0,#t("frame.f90",482)
+ES
+S JOINTS,JOINTS,#h("frame.f90",619)
+ V JDOF1,jdof1,Integer,int,,0
+ V I,i,Integer,int,,0,#t("frame.f90",621)
+ V N1,n1,Integer,int,,0,#t("frame.f90",623)
+ V N2,n2,Integer,int,,0,#t("frame.f90",623)
+ V J,j,Integer,int,,0,#t("frame.f90",621)
+ V K,k,Integer,int,,0
+ V IDNODE,idnode,Integer,int,,0,#t("frame.f90",623)
+ V JDOF2,jdof2,Integer,int,,0
+ V NELR,nelr,Integer,int,,0,#t("frame.f90",622)
+ V NELL,nell,Integer,int,,0,#t("frame.f90",622)
+ V NTDIS,ntdis,Integer,int,,0,#t("frame.f90",622)
+ V NRDIS,nrdis,Integer,int,,0,#t("frame.f90",622)
+ V STIFF,stiff,Real(Kind=2),double,,0,#t("frame.f90",624)
+ V REC,rec,Character(Len=80),Char[80],,0,#t("frame.f90",625)
+ V ADIS,adis,Real(Kind=2),double,,0,#t("frame.f90",624)
+ V NNODE,GLOBALVAR_MP_nnode,Integer,int,,0,#t("frame.f90",12)
+ V VKJJ,vkjj,Real(Kind=2),double,,0,#t("frame.f90",624)
+ V JDOF,jdof,Integer,int,,0
+ V NDOF,GLOBALVAR_MP_ndof,Integer,int,,0,#t("frame.f90",19)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V VLOADS,GLOBALVAR_MP_vloads,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",25)
+ V VK,GLOBALVAR_MP_vk,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",30)
+ V JDIR,jdir,Integer,int,,0,#t("frame.f90",621)
+ES
+S SOLVE,SOLVE,#h("frame.f90",761)
+ V I,i,Integer,int,,0,#t("frame.f90",763)
+ V J,j,Integer,int,,0,#t("frame.f90",763)
+ V K,k,Integer,int,,0,#t("frame.f90",763)
+ V DNOD,dnod,Real(Kind=2),double,,1,f(1:3),#t("frame.f90",764)
+ V DMX,dmx,Real(Kind=2),double,,1,f(1:3),#t("frame.f90",764)
+ V DMN,dmn,Real(Kind=2),double,,1,f(1:3),#t("frame.f90",764)
+ V PVAL,pval,Real(Kind=2),double,,0,#t("frame.f90",764)
+ V NNODE,GLOBALVAR_MP_nnode,Integer,int,,0,#t("frame.f90",12)
+ V JDOF,jdof,Integer,int,,0,#t("frame.f90",763)
+ V NDOF,GLOBALVAR_MP_ndof,Integer,int,,0,#t("frame.f90",19)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V VLOADS,GLOBALVAR_MP_vloads,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",25)
+ V VK,GLOBALVAR_MP_vk,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",30)
+ V VDISP,GLOBALVAR_MP_vdisp,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",36)
+ES
+S STRESS,STRESS,#h("frame.f90",840)
+ V QS,qs,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",843)
+ V QF,qf,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",843)
+ V T,t,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",843)
+ V EQF,eqf,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",843)
+ V I,i,Integer,int,,0,#t("frame.f90",842)
+ V NE,ne,Integer,int,,0
+ V NCODE,ncode,Integer,int,,1,f(1:6),#t("frame.f90",842)
+ V N1,n1,Integer,int,,0
+ V N2,n2,Integer,int,,0
+ V QSL,qsl,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",843)
+ V J,j,Integer,int,,0,#t("frame.f90",842)
+ V NELE,GLOBALVAR_MP_nele,Integer,int,,0,#t("frame.f90",12)
+ V IN,GLOBALVAR_MP_in,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",14)
+ V JDOF,jdof,Integer,int,,0,#t("frame.f90",842)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V ST,GLOBALVAR_MP_st,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",31)
+ V VDISP,GLOBALVAR_MP_vdisp,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",36)
+ES
+S PLOT,PLOT,#h("frame.f90",889)
+ V CURV,curv,Real(Kind=2),double,,0
+ V E1,e1,Real(Kind=2),double,,0
+ V EM,em,Real(Kind=2),double,,0
+ V WW,ww,Real(Kind=2),double,,0
+ V QS,qs,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",893)
+ V E2,e2,Real(Kind=2),double,,0
+ V QF,qf,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",893)
+ V T,t,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",893)
+ V EQF,eqf,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",893)
+ V PG,pg,Real(Kind=2),double,,0
+ V I,i,Integer,int,,0,#t("frame.f90",892)
+ V NE,ne,Integer,int,,0
+ V XX,xx,Real(Kind=2),double,,0
+ V NCODE,ncode,Integer,int,,1,f(1:6),#t("frame.f90",892)
+ V PY,py,Real(Kind=2),double,,0
+ V N1,n1,Integer,int,,0
+ V N2,n2,Integer,int,,0
+ V VV,vv,Real(Kind=2),double,,0
+ V QSL,qsl,Real(Kind=2),double,,1,f(1:6),#t("frame.f90",893)
+ V J,j,Integer,int,,0,#t("frame.f90",892)
+ V SSN,ssn,Real(Kind=2),double,,0
+ V SST,sst,Real(Kind=2),double,,0
+ V SSM,ssm,Real(Kind=2),double,,0
+ V UU,uu,Real(Kind=2),double,,0
+ V DX,dx,Real(Kind=2),double,,0
+ V AL,al,Real(Kind=2),double,,0
+ V ISC,isc,Integer,int,,0
+ V IMT,imt,Integer,int,,0
+ V NNODE,GLOBALVAR_MP_nnode,Integer,int,,0,#t("frame.f90",12)
+ V DY,dy,Real(Kind=2),double,,0
+ V NELE,GLOBALVAR_MP_nele,Integer,int,,0,#t("frame.f90",12)
+ V CA,ca,Real(Kind=2),double,,0
+ V SA,sa,Real(Kind=2),double,,0
+ V AA,aa,Real(Kind=2),double,,0
+ V ISEC,GLOBALVAR_MP_isec,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V IMAT,GLOBALVAR_MP_imat,Integer,int,a,1,a(*:*),#t("frame.f90",13)
+ V IN,GLOBALVAR_MP_in,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",14)
+ V COORD,GLOBALVAR_MP_coord,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V CSEC,GLOBALVAR_MP_csec,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V WEIGHT,weight,Real(Kind=2),double,,0
+ V CMAT,GLOBALVAR_MP_cmat,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",15)
+ V JDOF,jdof,Integer,int,,0,#t("frame.f90",892)
+ V IDOF,GLOBALVAR_MP_idof,Integer,int,a,2,a(*:*,*:*),#t("frame.f90",20)
+ V ELOADS,GLOBALVAR_MP_eloads,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",24)
+ V PX,px,Real(Kind=2),double,,0
+ V PY1,py1,Real(Kind=2),double,,0
+ V PY2,py2,Real(Kind=2),double,,0
+ V PRES,GLOBALVAR_MP_pres,Real(Kind=2),double,a,2,a(*:*,*:*),#t("frame.f90",26)
+ V ST,GLOBALVAR_MP_st,Real(Kind=2),double,,2,f(1:6,1:6),#t("frame.f90",31)
+ V VDISP,GLOBALVAR_MP_vdisp,Real(Kind=2),double,a,1,a(*:*),#t("frame.f90",36)
+ V FP,fp,Real(Kind=2),double,,0
+ES
+F F,F,#h("frame.f90",982)
+ V F,FResult,Real(Kind=2),double,,0
+ V I,i,Integer,int,d,0
+ V X,x,Real(Kind=2),double,d,0
+ V CSI,csi,Real(Kind=2),double,,0
+ V AL,al,Real(Kind=2),double,d,0
+EF
+F U,U,#h("frame.f90",1001)
+ V U,UResult,Real(Kind=2),double,,0
+ V QSL,qsl,Real(Kind=2),double,d,1,f(1:6)
+ V I,i,Integer,int,,0
+ V X,x,Real(Kind=2),double,d,0
+ V AL,al,Real(Kind=2),double,d,0
+EF
+F V,V,#h("frame.f90",1011)
+ V V,VResult,Real(Kind=2),double,,0
+ V QSL,qsl,Real(Kind=2),double,d,1,f(1:6)
+ V I,i,Integer,int,,0
+ V X,x,Real(Kind=2),double,d,0
+ V AL,al,Real(Kind=2),double,d,0
+EF
