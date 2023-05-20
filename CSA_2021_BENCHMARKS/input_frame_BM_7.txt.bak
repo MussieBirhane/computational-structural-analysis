@@ -1,0 +1,57 @@
+
+2D FRAME Benchmarks [m, kN]
+
+NODES<NNode><IDNode,X,Y>
+4
+1, 0, 0
+2, 6, 0
+3, 6,-3
+4, 6, 3
+
+SECTIONS<NSec><IDSec, Area, Inertia, Depth, ShearCF>
+2
+1, 800, 2.88E-03, 0.5, 0             
+2, 6400, 5.76E-03, 0.5, 0             
+
+MATERIALS<NMat><IDMat, E, v, Thermal, SelfWeight>
+1
+1, 30000000, 0.2, 10E-05, 0     
+
+ELEMENTS<NEle><IDElem, Node1, Node2, Section, Material>
+3
+1, 1, 2, 1, 1
+2, 2, 3, 2, 1
+3, 2, 4, 2, 1
+
+RESTRAINTS<NRes><Node, Dir>
+5
+1, 1
+1, 2
+3, 2
+4, 2
+4, 3
+
+LINKS<NLinks><Master, Slave, Dir>
+0
+
+NODAL_LOADS<NLoads><Node, Dir, Force>
+0
+
+ELEMENT_LOADS<NLoads><Elem, Px, Py1, Py2, DTtop, DTbot>
+1
+1, 0, 0, 0, 10, -10
+
+PRESTRESSING ELEMENTS<NEp><IDElep, NTend><IDTend, P, e1, em, e2>
+0
+
+ELASTIC RESTRAINTS<Number><Node, Dir, Stiffness>
+2
+1, 3, 43200
+3, 1, 400
+
+ELASTIC LINKS<Number><N1, N2, Dir, StiFfness>
+0
+IMPOSED DISPLACEMENT<Number><Node, Dir, Displacement>
+0
+IMPOSED RELATIVE DISPLACEMENT<Number><N1, N2, Dir, Displacement>
+0

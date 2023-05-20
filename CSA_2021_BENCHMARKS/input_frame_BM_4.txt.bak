@@ -1,0 +1,53 @@
+
+2D PORTAL FRAME for Benchmark [m, kN]
+
+NODES<NNode><IDNode,X,Y>
+3
+1, 0, 0
+2, 1, 0
+3, 1.5, 0
+
+SECTIONS<NSec><IDSec, Area, Inertia, Depth, ShearCF>
+1
+1, 0.003, 2E-05, 0.4, 0                
+
+MATERIALS<NMat><IDMat, E, v, Thermal, SelfWeight>
+1
+1, 210000000, 0.2, 0, 0                      
+
+ELEMENTS<NEle><IDElem, Node1, Node2, Section, Material>
+2
+1, 1, 2, 1, 1
+2, 2, 3, 1, 1
+
+RESTRAINTS<NRes><Node, Dir>
+6
+1, 1
+1, 2
+1, 3
+3, 1
+3, 2
+3, 3
+
+LINKS<NLinks><Master, Slave, Dir>
+0
+
+NODAL_LOADS<NLoads><Node, Dir, Force>
+1
+2, 2, -600
+
+ELEMENT_LOADS<NLoads><Elem, Px, Py1, Py2, DTtop, DTbot>
+0
+
+PRESTRESSING ELEMENTS<NEp><IDElep, NTend><IDTend, P, e1, em, e2>
+0
+
+ELASTIC RESTRAINTS<Number><Node, Dir, Stiffness>
+0
+ELASTIC LINKS<Number><N1, N2, Dir, StiFfness>
+0
+IMPOSED DISPLACEMENT<Number><Node, Dir, Displacement>
+0
+IMPOSED RELATIVE DISPLACEMENT<Number><N1, N2, Dir, Displacement>
+0
+

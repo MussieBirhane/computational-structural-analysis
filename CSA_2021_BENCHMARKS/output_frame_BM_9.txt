@@ -1,0 +1,194 @@
+
+GEOMETRY SECTIONS/MATERIALS
+
+ NO. OF NODES =    4
+ NODE               COORD_X          COORD_Y
+    1                  0.00             0.00
+    2                  0.00             4.00
+    3                  6.00             4.00
+    4                  6.00             0.00
+
+ NO. OF SECTIONS =    2
+  SEC                  AREA          INERTIA            DEPTH               SF
+    1            0.2890E+04       0.1042E-01            0.400             0.00
+    2            0.2890E+04       0.5208E-02            0.400             0.00
+
+ NO. OF MATERIALS =    1
+  MAT                     E                v          THERMAL      SELF_WEIGHT
+    1            0.3000E+08             0.20       0.0000E+00             0.00
+
+ NO. OF ELEM =    4
+ ELEM                NODE_1           NODE_2         SECT_YPE         MAT_TYPE
+    1                     1                2                2                1
+    2                     2                3                1                1
+    3                     3                4                2                1
+    4                     1                4                1                1
+
+RESTRAINTS/LINKS
+
+ NO. OF RESTRAINTS =    4
+ NODE             DIRECTION
+    1                     1
+    1                     2
+    4                     1
+    4                     2
+
+ NO. OF LINKS =    0
+
+ DOF MATRIX
+ Node                    Ux               Uy             Rotz
+    1                    -1               -1                1
+    2                     2                3                4
+    3                     5                6                7
+    4                    -1               -1                8
+
+NODAL AND ELEMENT LOADS
+
+ NO. OF LOADS =    1
+ NODE                   DIR            FORCE
+    2                     1           200.00
+
+ VECTOR OF NODAL LOADS
+  DOF                 FORCE
+    1                  0.00
+    2                200.00
+    3                  0.00
+    4                  0.00
+    5                  0.00
+    6                  0.00
+    7                  0.00
+    8                  0.00
+
+ NO. OF ELEMENT LOADS =    0
+
+ NO. OF PRESTRESSED ELEMENT =    0
+
+
+  DOF                 FORCE
+    1            0.0000E+00
+    2            0.2000E+03
+    3            0.0000E+00
+    4            0.0000E+00
+    5            0.0000E+00
+    6            0.0000E+00
+    7            0.0000E+00
+    8            0.0000E+00
+
+ STIFFNESS MATRIX
+
+ ROW             COLUMN  1
+    1            0.3646E+06
+    2            0.5859E+05
+    3            0.0000E+00
+    4            0.7812E+05
+    5            0.0000E+00
+    6            0.0000E+00
+    7            0.0000E+00
+    8            0.1042E+06
+
+ ROW             COLUMN  2
+    1            0.5859E+05
+    2            0.1445E+11
+    3            0.0000E+00
+    4            0.5859E+05
+    5           -0.1445E+11
+    6            0.0000E+00
+    7            0.0000E+00
+    8            0.0000E+00
+
+ ROW             COLUMN  3
+    1            0.0000E+00
+    2            0.0000E+00
+    3            0.2168E+11
+    4            0.5208E+05
+    5            0.0000E+00
+    6           -0.1736E+05
+    7            0.5208E+05
+    8            0.0000E+00
+
+ ROW             COLUMN  4
+    1            0.7812E+05
+    2            0.5859E+05
+    3            0.5208E+05
+    4            0.3646E+06
+    5            0.0000E+00
+    6           -0.5208E+05
+    7            0.1042E+06
+    8            0.0000E+00
+
+ ROW             COLUMN  5
+    1            0.0000E+00
+    2           -0.1445E+11
+    3            0.0000E+00
+    4            0.0000E+00
+    5            0.1445E+11
+    6            0.0000E+00
+    7            0.5859E+05
+    8            0.5859E+05
+
+ ROW             COLUMN  6
+    1            0.0000E+00
+    2            0.0000E+00
+    3           -0.1736E+05
+    4           -0.5208E+05
+    5            0.0000E+00
+    6            0.2168E+11
+    7           -0.5208E+05
+    8            0.0000E+00
+
+ ROW             COLUMN  7
+    1            0.0000E+00
+    2            0.0000E+00
+    3            0.5208E+05
+    4            0.1042E+06
+    5            0.5859E+05
+    6           -0.5208E+05
+    7            0.3646E+06
+    8            0.7812E+05
+
+ ROW             COLUMN  8
+    1            0.1042E+06
+    2            0.0000E+00
+    3            0.0000E+00
+    4            0.0000E+00
+    5            0.5859E+05
+    6            0.0000E+00
+    7            0.7812E+05
+    8            0.3646E+06
+
+ELASTIC RESTRAINTS-LINKS
+ NO. OF ELASTIC RESTRAINTS =    0
+
+ NO. OF ELASTIC LINKS =    0
+
+ NO. OF IMPOSED DISPLACEMENT =    0
+
+ NO. OF RELATIVE DISPLACEMENT =    0
+
+ SUMMARY OF RESULTS
+ NODAL DISPLACEMENTS
+ NODE                    Ux               Uy             Rotz
+    1           0.00000E+00      0.00000E+00     -0.64000E-03
+    2           0.59734E-02      0.30757E-08     -0.64001E-03
+    3           0.59734E-02     -0.30757E-08     -0.64000E-03
+    4           0.00000E+00      0.00000E+00     -0.64000E-03
+  MAX           0.59734E-02      0.30757E-08     -0.64000E-03
+  MIN           0.00000E+00     -0.30757E-08     -0.64001E-03
+
+ DISPLACEMENTS AT DEGREE OF FREEDOM
+  DOF                  DISP
+    1          -0.64000E-03
+    2           0.59734E-02
+    3           0.30757E-08
+    4          -0.64001E-03
+    5           0.59734E-02
+    6          -0.30757E-08
+    7          -0.64000E-03
+    8          -0.64000E-03
+
+ FORCES AT NODES
+ ELEM                    N1               T1               M1               N2               T2               M2
+    1          -0.66667E+02      0.10000E+03      0.20000E+03      0.66667E+02     -0.10000E+03      0.20000E+03
+    2           0.10000E+03     -0.66667E+02     -0.20000E+03     -0.10000E+03      0.66667E+02     -0.20000E+03
+    3           0.66667E+02      0.10000E+03      0.20000E+03     -0.66667E+02     -0.10000E+03      0.20000E+03
+    4           0.00000E+00     -0.66667E+02     -0.20000E+03      0.00000E+00      0.66667E+02     -0.20000E+03

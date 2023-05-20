@@ -1,0 +1,93 @@
+
+GEOMETRY SECTIONS/MATERIALS
+
+ NO. OF NODES =    3
+ NODE               COORD_X          COORD_Y
+    1                  0.00             0.00
+    2                  1.00             0.00
+    3                  1.50             0.00
+
+ NO. OF SECTIONS =    1
+  SEC                  AREA          INERTIA            DEPTH               SF
+    1            0.3000E-02       0.2000E-04            0.400             2.50
+
+ NO. OF MATERIALS =    1
+  MAT                     E                v          THERMAL      SELF_WEIGHT
+    1            0.2100E+09             0.30       0.0000E+00             0.00
+
+ NO. OF ELEM =    2
+ ELEM                NODE_1           NODE_2         SECT_YPE         MAT_TYPE
+    1                     1                2                1                1
+    2                     2                3                1                1
+
+RESTRAINTS/LINKS
+
+ NO. OF RESTRAINTS =    6
+ NODE             DIRECTION
+    1                     1
+    1                     2
+    1                     3
+    3                     1
+    3                     2
+    3                     3
+
+ NO. OF LINKS =    0
+
+ DOF MATRIX
+ Node                    Ux               Uy             Rotz
+    1                    -1               -1               -1
+    2                     1                2                3
+    3                    -1               -1               -1
+
+NODAL AND ELEMENT LOADS
+
+ NO. OF LOADS =    1
+ NODE                   DIR            FORCE
+    2                     2          -600.00
+
+ VECTOR OF NODAL LOADS
+  DOF                 FORCE
+    1                  0.00
+    2               -600.00
+    3                  0.00
+
+ NO. OF ELEMENT LOADS =    0
+
+ NO. OF PRESTRESSED ELEMENT =    0
+
+
+  DOF                 FORCE
+    1            0.0000E+00
+    2           -0.6000E+03
+    3            0.0000E+00
+
+ STIFFNESS MATRIX
+
+ELASTIC RESTRAINTS-LINKS
+ NO. OF ELASTIC RESTRAINTS =    0
+
+ NO. OF ELASTIC LINKS =    0
+
+ NO. OF IMPOSED DISPLACEMENT =    0
+
+ NO. OF RELATIVE DISPLACEMENT =    0
+
+ SUMMARY OF RESULTS
+ NODAL DISPLACEMENTS
+ NODE                    Ux               Uy             Rotz
+    1           0.00000E+00      0.00000E+00      0.00000E+00
+    2           0.00000E+00     -0.38685E-02      0.21489E-02
+    3           0.00000E+00      0.00000E+00      0.00000E+00
+  MAX           0.00000E+00      0.00000E+00      0.21489E-02
+  MIN           0.00000E+00     -0.38685E-02      0.00000E+00
+
+ DISPLACEMENTS AT DEGREE OF FREEDOM
+  DOF                  DISP
+    1           0.00000E+00
+    2          -0.38685E-02
+    3           0.21489E-02
+
+ FORCES AT NODES
+ ELEM                    N1               T1               M1               N2               T2               M2
+    1           0.00000E+00      0.16390E+03      0.72924E+02      0.00000E+00     -0.16390E+03      0.90975E+02
+    2           0.00000E+00     -0.43610E+03     -0.90975E+02      0.00000E+00      0.43610E+03     -0.12708E+03
