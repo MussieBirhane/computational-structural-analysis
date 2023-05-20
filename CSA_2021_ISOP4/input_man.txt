@@ -1,0 +1,50 @@
+
+2D ISOP4 FINITE ELEMENT [m, kN]
+
+TYPE OF PROBLEM(0 = PLANE STRESS, 1 = PLANE STRAIN)
+0
+
+TYPE OF MESH <0 = STANDARD, 1 = AUTOMATIC>
+0
+
+NODES<NNodes><Node, X, Y>
+4
+1, 0, 0
+2, 10, 0
+3, 12, 6
+4, 2, 4
+
+CHARACTERSTICS<NType><Type, E, v, alpha, self-weight, t>
+1
+1, 30000000, 0.25, 0, 0, 1
+
+ELEMENTS<NElem><IDElem, N1, N2, N3, N4, Type, QuadratureRule>
+1
+1, 1, 2, 3, 4, 1, 2
+
+RESTRAINTS<NRes><Node, Dir>
+4
+1, 1
+1, 2
+2, 1
+2, 2
+
+LINKS<NLinks><Master, Slave, Dir>
+0
+
+NODAL LOADS<NLoads><Node, Dir, Force>
+2
+3, 1, 100
+3, 2, -100
+
+SURFACE LOADS<NLoads><IDSide, N1, N2, Px1, Px2, Py1, Py2>
+1
+1, 3, 4, 0, 0, 10, 10
+
+THERMAL LOADS<Nloads><Elem, DT>
+0
+
+NODAL AVARAGING <0 = Arithmetic, 1 = Volumetric, 2 = Energy>
+0
+
+

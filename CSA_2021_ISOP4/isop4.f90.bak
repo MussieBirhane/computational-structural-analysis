@@ -1,0 +1,1332 @@
+
+! COMPUTATIONAL STRUCTURAL ANALYSIS (CSA_2021)
+! Prof. Fabio Biondini
+!
+! Student: Marta Fioretti (900392)
+!		   Mussie Amaha Birhane (942910)
+! Input file: input.txt
+! 2D ISOP4 [m, kN]
+! Module is used to define all global variables in the program
+
+MODULE GLOBALVAR
+		
+	! for GEOMET Subroutine
+		IMPLICIT DOUBLE PRECISION (A-H, O-Z)     											 ! All lines starting from A-H and O-Z are in double precision
+		INTEGER:: NNODE, NELE, NTYPE, IFEA	
+		INTEGER, DIMENSION(:,:), ALLOCATABLE, SAVE:: IN				 					     ! Incidence of element matrix 
+		REAL(2), DIMENSION(:,:), ALLOCATABLE, SAVE:: COORD, CTYPE						   	 ! (2) double precision
+		INTEGER, DIMENSION(:), ALLOCATABLE, SAVE:: ITYPE, NGAUSS						   	 ! incedence of the elements and the corresponding quadrature rule
+		
+	! for MESH Subroutine
+		INTEGER:: IMESH, NDOM
+		INTEGER,DIMENSION(:), ALLOCATABLE, SAVE:: NELED
+		
+	! for SCODE Subroutine
+		INTEGER:: NDOF																		 ! Total number of degree of freedom
+		INTEGER, DIMENSION(:,:), ALLOCATABLE, SAVE:: IDOF
+		
+	! for LOAD Subroutine
+		REAL(2), DIMENSION(:,:), ALLOCATABLE, SAVE:: ELOADS									 ! Matrix of element loads
+		REAL(2), DIMENSION(:), ALLOCATABLE, SAVE:: VLOADS, THERM  							 ! Vector of nodal loads
+		
+	! for ASSEMB Subroutine
+		REAL(2),DIMENSION(:,:),ALLOCATABLE,SAVE:: VK
+		REAL(2),DIMENSION(8,8):: ST
+		REAL(2),DIMENSION(8):: EQFG
+		REAL(2),DIMENSION(8):: EQF
+		
+	! for SOLVE Subroutine 
+		REAL(2),DIMENSION(:),ALLOCATABLE,SAVE:: VDISP
+		
+	! for STRESS Subroutine
+		INTEGER::IMEAN													! Depends on the weight procedure
+		REAL(2),DIMENSION(:,:), ALLOCATABLE, SAVE:: SIGNOD, EPSNOD		! Stress and Strain at the nodes will be allocated
+		REAL(2),DIMENSION(:), ALLOCATABLE, SAVE:: SUMWEIGHT				!denominator of the weight ratio
+		REAL(2),DIMENSION(3):: EPS0										! Vector of initial deformation
+		REAL(2),DIMENSION(4):: SIG, EPS 								! Stress and strains on generic points of element
+		REAL(2),DIMENSION(3):: SIGP, EPSP								! principal sress and strain
+		REAL(2),DIMENSION(4):: SIGCG, EPSCG								! Stress ans strain on center of gravity
+		REAL(2),DIMENSION(4,4):: SIGV, EPSV								! Stress and Strain on vertices before the weighting procedure
+
+END MODULE GLOBALVAR
+
+PROGRAM ISOP4
+		USE GLOBALVAR
+   	 	! Local Variable
+   		CHARACTER(LEN=80):: TITLE, REC									! the variable through which we read the global title of the input
+		! Opening and Closing files
+    	OPEN(11, FILE='input_BC_4_4L.txt', STATUS='UNKNOWN')
+    	OPEN(12, FILE='output_BC_4_4L.txt', STATUS='UNKNOWN')
+    	OPEN(9, FILE='MKK.tmp', STATUS='UNKNOWN')
+    	
+    	READ(11,*)TITLE
+    	WRITE(12,'(/,T1,"INPUT DATA FOR TYPE OF PROBLEM")')
+    	READ(11,*)REC
+    	READ(11,*)IFEA
+    	
+    		IF(IFEA==0)THEN
+    			WRITE(12,'(/,1X,"PLANE STRESS PROBLEM")')
+    		ELSE IF(IFEA==1)THEN
+    			WRITE(12,'(/,1X,"PLANE STRAIN PROBLEM")')
+			ELSE
+				WRITE(12,'(/,1X,"DATA ERROR - INCORRECT PROBLEM TYPE")')
+			END IF
+		
+		! Type of mesh
+		READ(11,*)REC
+		READ(11,*)IMESH
+			
+			IF(IMESH==0) THEN
+				WRITE(12,'(/,1X,"STANDARD MESH")')
+			ELSE IF(IMESH==1) THEN
+				WRITE(12,'(/,1X,"AUTOMATIC MESH")')	
+			ELSE
+				WRITE(12,'(/,1X,"INCORRECT MESH TYPE")')
+			END IF
+			
+		! Call Mesh
+		IF (IMESH==1) THEN
+			CALL MESH
+		END IF
+				
+		! Call subroutines
+		CALL GEOMET
+		CALL SCODE
+		CALL LOADS
+		CALL ASSEMB
+!		CALL JOINTS
+		CALL SOLVE
+		CALL STRESS
+		CALL PLOT
+		
+		CLOSE(11)
+		CLOSE(12)
+		CLOSE(9)
+		STOP
+		
+END PROGRAM ISOP4
+
+SUBROUTINE GEOMET
+		USE GLOBALVAR
+		INTEGER:: IDTYPE, IDELE, I, J, JCODE
+		INTEGER,DIMENSION(:), ALLOCATABLE, SAVE:: NG, ITYPED
+		CHARACTER(LEN=80):: REC
+		! Read and Write the data in specific format
+          	WRITE(12,'(/,"GEOMETRY")')
+          	
+          	IF (IMESH==0) THEN					! for Standard mesh
+          		READ(11,*)REC
+          		READ(11,*)NNODE
+          		! Verify the input
+	          		IF (NNODE < 2) THEN
+	             		WRITE(12,'(/,1X,"DATA ERROR-NODES")')
+	             		STOP
+	             		RETURN
+	          		END IF
+          		
+          		ALLOCATE(COORD(NNODE,2))										! Matrix of the coordinate
+          	END IF
+          	
+          	WRITE(12,'(/, 1X, "NO. OF NODES = ", 1X, I3)')NNODE
+          	WRITE(12, 101) 'NODE', 'COORD_X', 'COORD_Y'						! Format should be provided after RETURN and before end of subroutine
+          
+          	IF(IMESH==1) THEN					! for Automatic mesh
+          		DO I=1, NNODE
+          			WRITE(12,102) I, (COORD(I,J), J=1,2)
+          		END DO
+          	ELSE	
+          	    DO I=1, NNODE
+	             	READ (11, *) IDNODE, COORD(IDNODE,:)						! read IDNODE and all columns of the coordinate
+	             	WRITE (12, 102) IDNODE, COORD(IDNODE,:)
+            	END DO
+          	END IF
+          	             
+		! Read and write the characterstics of the element
+			READ(11,*)REC
+			READ(11,*)NTYPE
+				! Verify the input
+				IF(NTYPE<1)THEN
+					WRITE(12,'(/,1X,"DATA ERROR-NO MATERIAL CHARACTERSTIC IS DEFINED")')
+					STOP 
+					RETURN
+				END IF
+			
+			ALLOCATE(CTYPE(NTYPE,5))
+			
+			WRITE(12,'(/,1X,"NO. OF ELEMENT TYPE = ", 1X, I3)') NTYPE
+			WRITE(12, 103)'TYPE', 'YOUNG', 'POIS', 'THERMAL', 'WEIGHT', 'THICKNESS'
+			DO I=1, NTYPE
+				READ(11,*)IDTYPE, CTYPE(IDTYPE,:)
+			 	WRITE(12,104)IDTYPE, CTYPE(IDTYPE,:)
+			 	JCODE=0
+			 	IF(CTYPE(IDTYPE,1)<=0)JCODE=1										! young's modulus
+			 	IF((CTYPE(IDTYPE,2)<0).OR.(CTYPE(IDTYPE,2)>0.5))JCODE=2				! poisson ratio
+			 	IF(CTYPE(IDTYPE,3)<0)JCODE=3										! thermal coefficient
+			 	IF(CTYPE(IDTYPE,4)<0)JCODE=4										! weight
+			 	IF(CTYPE(IDTYPE,5)<=0)JCODE=5										! thickness
+			 	
+			 	IF(JCODE>0)THEN
+			 		WRITE(12,'(/,1X,"ERROR IN ELEMENT TYPE PROPERTY-CTYPE(",I2,",",I1,")")')IDTYPE, JCODE
+			 	END IF
+			END DO
+			
+			! Read and write connectivity
+			IF(IMESH==1)THEN
+				READ(11,*)REC
+			ELSE IF (IMESH==0) THEN
+				READ(11,*)REC
+				READ(11,*)NELE
+				! Verify the input
+					IF(NELE<1)THEN
+						WRITE(12,'(/,1X,"DATA ERROR-NO ELEMENT IS DEFINED")')
+						STOP 
+						RETURN
+					END IF
+					
+				ALLOCATE(IN(NELE,6))
+			END IF			
+			
+			ALLOCATE(ITYPE(NELE))
+			ALLOCATE(NGAUSS(NELE))																! associate the number of integration points to each elements
+			WRITE(12,'(/,1X,"NO. OF ELEMENT =", 1X, I5)')NELE
+			WRITE(12,105)'ELEM', 'N1', 'N2', 'N3', 'N4', 'ELEMENT TYPE', 'GAUSS POINT'
+			
+			IF(IMESH==1)THEN				! for Automatic mesh
+				ALLOCATE(ITYPED(NDOM))
+				ALLOCATE(NG(NDOM))
+				ISTART = 1
+				IFINISH = NELED(1)
+					PRINT*,NELED(1)
+				DO K = 1, NDOM
+					READ(11,*)IDDOM, ITYPED(K), NG(K)
+					ITYPE(ISTART:IFINISH) = ITYPED(K)		! associate characterstic of each domain
+					NGAUSS(ISTART:IFINISH) = NG(K)
+					ISTART = IFINISH + 1
+					IFINISH = IFINISH + NELED(K)				! CHECK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				END DO
+				
+				DO I=1,NELE
+					WRITE(12,106) I, (IN(I,J), J=1,4), ITYPE(I), NGAUSS(I) 				!CHECK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				END DO	
+			ELSE
+				DO I = 1, NELE
+					READ(11,*) IDELE,(IN(IDELE,J), J=1,4), ITYPE(IDELE), NGAUSS(IDELE)
+					WRITE(12,106) IDELE,(IN(IDELE,J), J=1,4), ITYPE(IDELE), NGAUSS(IDELE)
+				END DO 
+			END IF
+		RETURN
+			
+		!FORMAT LIST
+			101 FORMAT (1X, A4, 10X, A12, 5X, A12)
+		 	102 FORMAT (1X, I4, 10X, F12.2, 5X, F12.2)
+			103 FORMAT (1X, A4, 10X, A12, 5X, A12, 5X, A12, 5X, A12, 5X, A12)
+		 	104 FORMAT (1X, I4, 10X, F12.2, 5X, F12.2, 5X, F12.2, 5X, F12.2, 5X, F12.2)
+			105 FORMAT (1X, A4, 10X, A12, 5X, A12, 5X, A12, 5X, A12, 5X, A12, 5X, A12)
+		 	106 FORMAT (1X, I4, 10X, I12, 5X, I12, 5X, I12, 5X, I12, 5X, I12, 5X, I12)
+			
+END SUBROUTINE GEOMET
+
+			
+SUBROUTINE SCODE
+		USE GLOBALVAR
+        INTEGER::I, J, NRES, NLINK, IDNODE, JDIR, NMAST, NSLAVE
+        CHARACTER(LEN=80)::REC     											 				! READ THE HEADER OF DIFFERENT SECTION  
+           ! INITIALIZATION
+           ALLOCATE(IDOF(NNODE,2))											 				! MATRIX OF DEGREE OF FREEDOM
+           IDOF(:,:)=0.
+           
+           WRITE(12,'(/,"RESTRAINTS/LINKS")')
+           ! READ/WRITE RESTRAINTS
+           READ(11,*)REC
+           READ(11,*)NRES           										 				! NUMBER OF RESTRAINTS
+           WRITE(12,'(/, 1X, "NO. OF RESTRAINTS = ", 1X, I3)')NRES
+           WRITE(12, 101) 'NODE', 'DIRECTION'
+           
+           DO I=1,NRES
+              READ(11,*)IDNODE,JDIR
+              WRITE(12,102)IDNODE,JDIR
+              IDOF(IDNODE,JDIR)=-1
+           END DO
+           
+           ! READING/WRITING LINKS
+           READ(11,*)REC
+           READ(11,*)NLINK
+           			! Verify the input
+           			IF(NLINK<0)THEN
+              			 WRITE(12,'("DATA ERROR-NO. OF LINK")')
+               			 STOP
+               			 RETURN
+          		    END IF
+           
+           WRITE(12,'(/,1X,"NO. OF LINKS = ", 1X, I3)')NLINK
+           
+           IF (NLINK>0) THEN																! It is possible to have no links
+              WRITE(12,103)'MASTER','SLAVE','DIR'
+              DO I=1, NLINK
+                 READ(11,*) NMAST, NSLAVE, JDIR
+                 WRITE(12,104) NMAST, NSLAVE, JDIR
+                 IDOF(NSLAVE,JDIR)=NMAST
+              END DO
+           END IF
+           
+           ! Numbering of DOFs
+		   NDOF=0
+		   WRITE(12,'(/,1X,"DOF MATRIX")')
+		   WRITE(12,105) 'Node', 'Ux', 'Uy'
+		   
+		   EXT: DO I = 1, NNODE
+     			INT: DO J = 1, 2
+            			IF(IDOF(I,J)<0) CYCLE INT											! CYCLE jumps to the next iteration if restrained (-1)
+            			IF(IDOF(I,J)==0) THEN
+                			NDOF=NDOF+1
+                			IDOF(I,J)=NDOF
+            			ELSE
+                			IDNODE=IDOF(I,J)												! IDOF(I,J) is the number of the master node
+                			IDOF(I,J)=IDOF(IDNODE,J)
+            			END IF
+          			 END DO INT
+              		 WRITE(12,106) I, IDOF(I,:)
+          		END DO EXT
+          		RETURN
+          		
+           ! DEFINITION OF THE FORMAT
+		 101 FORMAT (1X, A4, 10X, A12)
+		 102 FORMAT (1X, I4, 10X, I12)
+		 103 FORMAT (1X, A4, 10X, A12, 5X, A12)
+		 104 FORMAT (1X, I4, 10X, I12, 5X, I12)
+		 105 FORMAT (1X, A4, 10X, A12, 5X, A12)
+		 106 FORMAT (1X, I4, 10X, I12, 5X, I12)
+		 
+END SUBROUTINE SCODE
+			
+			 
+SUBROUTINE LOADS
+		USE GLOBALVAR
+		! Local variable declaration
+        INTEGER:: I, NNL, IDNODE, JDIR, JDOF, IDELE, IDSIDE
+        INTEGER:: NPRE, NTHERM, N1, N2					 	 							! NPRE is for surface load
+        REAL(2):: PFORCE, DELTAT, PX1, PX2, PY1, PY2                        								! ELOAD(5) is NOT ELOADS
+        CHARACTER(LEN = 80):: REC
+                    
+           ALLOCATE(VLOADS(NDOF))												! Vector of Nodal loads in global reference system  
+           VLOADS(:)=0.              											! Initialization (DOUBLE PRECISION)
+
+           ! NODAL FORCES
+           READ(11,*)REC
+           READ(11,*)NNL             											! Total number of Nodal loads
+           			! Verify the input
+           			IF (NNL<0) THEN
+              			WRITE(12,'("DATA ERROR-NO. OF NODAL LOAD")')
+              			STOP
+              			RETURN
+           			END IF
+           
+           WRITE(12,'(/,1X,"NO. OF LOADS = ", 1X, I3)')NNL
+           
+           IF (NNL>0) THEN
+              WRITE(12,101) 'NODE', 'DIR', 'FORCE'
+              DO I = 1, NNL
+                   READ (11,*) IDNODE, JDIR, PFORCE
+                   IF((IDNODE<1).OR.(IDNODE>NNODE))THEN
+                         WRITE(12,'("NODAL LOADS APPLIED ON INCORRECT POSITION.")')
+                         STOP
+                         RETURN
+                   END IF
+                   
+                   IF((JDIR<1).OR.(JDIR>3))THEN
+                         WRITE(12,'("NODAL LOADS APPLIED ALONG INCORRECT DIRECTION")')
+                         STOP
+                         RETURN
+                   END IF
+                   
+                   WRITE(12, 102) IDNODE, JDIR, PFORCE
+                   JDOF=IDOF(IDNODE, JDIR)
+                   		! Verify the input
+                   		IF(JDOF<0) THEN
+                   			WRITE(12,'(/,1X,"NODAL FORCE APPLIED ON A RESTRAINT")')
+                   		ELSE
+                   			VLOADS(JDOF)=VLOADS(JDOF) + PFORCE
+                   		END IF          					! It is possible to have two nodal loads at a point
+               END DO
+              
+              WRITE(12,'(/, 1X, "VECTOR OF NODAL LOADS")')
+              WRITE(12,103) 'DOF', 'FORCE'
+              DO I = 1, NDOF
+                   WRITE(12, 104) I, VLOADS(I)
+              END DO
+           END IF
+           
+            ! SURFACE LOADS
+            READ(11,*)REC
+            READ(11,*)NPRE
+            			! Verify the input
+           				IF (NPRE<0) THEN
+              				WRITE(12,'("DATA ERROR-NO. OF SURFACE LOAD")')
+              				STOP
+              				RETURN
+           				END IF
+           
+            WRITE(12,'(/,1X,"NO. OF SURFACE LOADS = ", 1X, I3)')NPRE
+            
+            IF(NPRE>0)THEN
+            
+            	ALLOCATE(ELOADS(NPRE,4))											! PX1,PX2,PY1,PY2
+            	ELOADS(:,:)=0.
+            
+            	WRITE(12,105) 'SURFACE', 'N1', 'N2', 'Px1', 'Px2', 'Py1', 'Py2'
+            	
+            	DO I=1,NPRE
+            		READ(11,*) IDSIDE, N1, N2, (ELOADS(I,J),J=1,4)  
+            		IF((IDSIDE<1).OR.(IDSIDE>NELE))THEN
+            			WRITE(12,'("DATA ERROR-NO. OF SURFACE LOADS")')
+            			STOP
+            			RETURN
+            		END IF
+            		
+            		WRITE(12,106) IDSIDE, N1, N2, (ELOADS(I,J), J=1,4)
+            		PX1 = ELOADS(I,1)
+            		PX2 = ELOADS(I,2)
+            		PY1 = ELOADS(I,3)
+            		PY2 = ELOADS(I,4)
+            		! Taken from slide
+            		DX = COORD(N2,1) - COORD(N1,1)
+            		DY = COORD(N2,2) - COORD(N1,2)
+            		AL = SQRT(DX**2. + DY**2.)
+            		FX1 = (2.*PX1 + PX2)*AL/6.
+            		FX2 = (2.*PX2 + PX1)*AL/6.
+            		FY1 = (2.*PY1 + PY2)*AL/6.
+            		FY2 = (2.*PY2 + PY1)*AL/6.
+            		J1X = IDOF(N1,1)
+            		J2X = IDOF(N2,1)
+            		J1Y = IDOF(N1,2)
+            		J2Y = IDOF(N2,2)
+            		! UPDATE THE VLOADS
+            		VLOADS(J1X) = VLOADS(J1X) + FX1   
+                    VLOADS(J2X) = VLOADS(J2X) + FX2 
+                    VLOADS(J1Y) = VLOADS(J1Y) + FY1 
+                    VLOADS(J2Y) = VLOADS(J2Y) + FY2
+                END DO
+            END IF
+            
+			! READ AND WRITE THERMAL LOADS
+			ALLOCATE(THERM(NELE))
+			THERM(:)=0.
+			READ(11,*)REC
+			READ(11,*)NTHERM
+			WRITE(12,'(/,1X,"NO. OF ELEMENT WITH THERMAL LOADS = ",1X,I3)')NTHERM
+				IF(NTHERM>0)THEN
+					WRITE(12,107) 'ELEM', 'DELTA_T'
+					DO I=1,NTHERM
+						READ(11,*)IDELE, DELTAT
+						THERM(IDELE)=DELTAT                      
+						WRITE(12,108)IDELE,DELTAT
+					END DO
+				END IF
+			
+			RETURN
+		
+		! FORMAT LIST
+		 101 FORMAT (1X, A4, 10X, A12, 5X, A12)
+		 102 FORMAT (1X, I4, 10X, I12, 5X, F12.2)
+		 103 FORMAT (1X, A4, 10X, A12)
+		 104 FORMAT (1X, I4, 10X, F12.2)
+		 105 FORMAT (1X, A4, 10X, A12, 5X, A12, 5X, A12, 5X, A12, 5X, A12, 5X, A12)
+		 106 FORMAT (1X, I4, 10X, I12, 5X, I12, 5X, F12.2, 5X, F12.2, 5X, F12.2, 5X, F12.2)  
+		 107 FORMAT (1X, A4, 10X, A12)  
+		 108 FORMAT (1X, I4, 10X, F12.2) 
+
+END SUBROUTINE LOADS
+		
+
+SUBROUTINE ASSEMB
+		USE GLOBALVAR
+		INTEGER::I,J,NE,NCODE(8) 
+			
+		ALLOCATE(VK(NDOF,NDOF))
+		VK(:,:)=0.
+			! The core of the subroutine is same with that of frame.
+			DO NE=1,NELE
+				N1=IN(NE,1)
+				N2=IN(NE,2)
+				N3=IN(NE,3)
+				N4=IN(NE,4)
+				NCODE(1:2)=IDOF(N1,1:2)
+				NCODE(3:4)=IDOF(N2,1:2)
+				NCODE(5:6)=IDOF(N3,1:2)
+				NCODE(7:8)=IDOF(N4,1:2)
+		
+				CALL MKK(NE)
+					EXT: DO I=1,8
+							IC=NCODE(I)
+							IF(IC<0)CYCLE EXT						 ! Skip the cycle if DOF is restrained
+							VLOADS(IC)=VLOADS(IC)+EQF(I)			 ! check EQFG vs EQF 
+						INT: DO J=1,8
+								JC=NCODE(J)
+								IF(JC<0)CYCLE INT
+								VK(IC,JC)=VK(IC,JC)+ST(I,J)
+						END DO INT
+					END DO EXT
+			END DO
+	
+		! PRINT OF VK AND VLOADS
+		WRITE(12,'(/)')
+		WRITE(12,101)'DOF','FORCE'
+		WRITE(12,102)(I,VLOADS(I),I=1,NDOF)
+		WRITE(12,'(/,1X,"STIFFNESS MATRIX")')
+	
+!			DO J= 1,NDOF
+!				WRITE(12,'(/,2X,"ROW", T18,1X,"COLUMN",I3)')J
+!				DO I= 1,NDOF
+!					WRITE (12,103)I, VK(I,J)
+!				END DO
+!			END DO
+	
+		RETURN 
+		!FORMAT LIST
+		101 FORMAT (1X, A6, 10X, A12)
+		102 FORMAT (1X, I6, 10X, E12.2)
+!		103 FORMAT (1X, I6, 10X, E12.2)
+
+END SUBROUTINE ASSEMB
+
+
+SUBROUTINE MKK(NE)
+	USE GLOBALVAR
+	IMPLICIT DOUBLE PRECISION(A-H,O-Z)
+	INTEGER:: NODE, IT, J, I, K
+	REAL(2):: YOUNG, POIS, XX(4), YY(4), DETJ
+	REAL(2):: TMP(3,8), BB(3,8), DD(3,3), TMPTHERM(3)
+	! Geometry properties
+		DO K=1,4
+			NODE=IN(NE,K)
+			XX(K)=COORD(NODE,1)
+			YY(K)=COORD(NODE,2)
+		END DO
+	! Element characterstics
+		IT = ITYPE(NE)
+		YOUNG = CTYPE(IT,1)
+		POIS = CTYPE(IT,2)
+		ALPHA = CTYPE(IT,3)
+		WEIGHT = CTYPE(IT,4)
+		THICK = CTYPE(IT,5)
+	! Initialize D
+		DD = 0.
+		IF(IFEA==1) THEN
+			YOUNG = YOUNG/(1.-POIS**2.)
+			POIS = POIS/(1.-POIS)
+		END IF
+		DD(1,1) = YOUNG/(1.-POIS**2.)       
+    	DD(1,2) = YOUNG*POIS/(1.-POIS**2)
+    	DD(2,1) = DD(1,2)
+    	DD(2,2) = DD(1,1)
+    	DD(3,3) = YOUNG/(2.*(1.+POIS))
+    ! Save the information on the TMP file
+    	WRITE(9,*)DD(:,:)
+    ! Initial deformation
+    	EPS0 = 0.
+    	IF(IFEA==0)THEN
+    		EPS0(1) = ALPHA*THERM(NE)
+    		EPS0(2) = EPS0(1)
+    	ELSE IF(IFEA==1)THEN
+    		EPS0(1) = (1.+POIS)*ALPHA*THERM(NE)
+    		EPS0(2) = EPS0(1)
+    	END IF
+    ! Stiffness matrix/equivalent functions
+    	ST = 0.
+    	EQF = 0.
+    	NGP = NGAUSS(NE)
+    	DO I = 1, NGP
+    		CALL GAUSS(NGP, I, CSI, WI)
+    		DO J = 1, NGP
+    			CALL GAUSS(NGP, J, ETA, WJ)
+    			CALL MKB(CSI, ETA, XX, YY, DETJ, BB)
+    			TMP = MATMUL(DD,BB)
+    			ST = ST + THICK*MATMUL(TRANSPOSE(BB),TMP)*DETJ*WI*WJ					
+    		! Volume loads
+    			FORCE = -WEIGHT
+    			DO K = 1,4
+    				L = K*2
+    				EQF(L) = EQF(L)+THICK*FORCE*SHAPEF(K,CSI,ETA)*DETJ*WI*WJ
+    			END DO
+    		! Thermal loada
+				TMPTHERM = MATMUL(DD, EPS0)
+				EQF = EQF + THICK*MATMUL(TRANSPOSE(BB),TMPTHERM)*DETJ*WI*WJ
+			END DO
+		END DO 
+
+		!Save the information in the temporary file
+		WRITE(9,*) ST(:,:)
+		RETURN
+	
+END SUBROUTINE MKK
+
+
+SUBROUTINE MKB(CSI,ETA,X,Y,DETJ,B)
+		USE GLOBALVAR
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		REAL(2) :: X(4),Y(4),B(3,8)
+			XC = FF4C(X,ETA)
+			YC = FF4C(Y,ETA)
+			XE = FF4E(X,CSI)
+			YE = FF4E(Y,CSI)
+			DETJ = XC*YE-YC*XE
+			B = 0.
+			DO K=1,4
+				K2=K*2
+				K1=K2-1
+				B(1,K1)=(YE*SHCSI(K,ETA)-YC*SHETA(K,CSI))/DETJ
+				B(2,K2)=(XE*SHCSI(K,ETA)+XC*SHETA(K,CSI))/DETJ
+				B(3,K1)=B(2,K2)
+				B(3,K2)=B(1,K1)
+			END DO
+		RETURN
+		
+END SUBROUTINE MKB
+
+
+DOUBLE PRECISION FUNCTION SHAPEF(I,CSI,ETA)
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		SELECT CASE (I)
+		CASE(1)
+			SHAPEF = ((1.-CSI)*(1.-ETA))/4.
+		CASE(2)
+			SHAPEF = ((1.+CSI)*(1.-ETA))/4.
+		CASE(3)
+			SHAPEF = ((1.+CSI)*(1.+ETA))/4.
+		CASE(4)
+			SHAPEF = ((1.-CSI)*(1.+ETA))/4.
+		END SELECT
+END FUNCTION SHAPEF
+
+DOUBLE PRECISION FUNCTION SHCSI(I,ETA)
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		SELECT CASE (I)
+		CASE(1)
+			SHCSI = -(1.-ETA)/4.
+		CASE(2)
+			SHCSI = (1.-ETA)/4.
+		CASE(3)
+			SHCSI = (1.+ETA)/4.
+		CASE(4)
+			SHCSI = -(1.+ETA)/4.
+		END SELECT
+END FUNCTION SHCSI
+
+DOUBLE PRECISION FUNCTION SHETA(I,CSI)
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		SELECT CASE (I)
+		CASE(1)
+			SHETA = -(1.-CSI)/4.
+		CASE(2)
+			SHETA = -(1.+CSI)/4.
+		CASE(3)
+			SHETA = (1.+CSI)/4.
+		CASE(4)
+			SHETA = (1.-CSI)/4.
+		END SELECT
+END FUNCTION SHETA
+
+DOUBLE PRECISION FUNCTION FF4(A,CSI,ETA)
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		DIMENSION :: A(4)
+		FF4 = 0.
+		DO K=1,4
+			FF4 = FF4+A(K)*SHAPEF(K,CSI,ETA)
+		END DO
+END FUNCTION FF4
+
+DOUBLE PRECISION FUNCTION FF4C(A,ETA)
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		DIMENSION :: A(4)
+		FF4C = 0.
+		DO K=1,4
+			FF4C = FF4C+A(K)*SHCSI(K,ETA)
+		END DO
+END FUNCTION FF4C
+
+DOUBLE PRECISION FUNCTION FF4E(A,CSI)
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		DIMENSION :: A(4)
+		FF4E = 0.
+		DO K=1,4
+			FF4E = FF4E+A(K)*SHETA(K,CSI)
+		END DO
+END FUNCTION FF4E
+
+SUBROUTINE GAUSS(NGP,JGP,CC,WW)
+		USE GLOBALVAR
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		EXT: SELECT CASE (NGP)
+			CASE(1)
+				CC = 0.0
+				WW = 2.0
+			CASE(2)
+				INT1: SELECT CASE (JGP)
+				CASE(1)
+					CC = -0.577350269189626
+					WW = 1.0
+				CASE(2)
+					CC = 0.577350269189626
+					WW = 1.0
+				END SELECT INT1
+			CASE(3)
+				INT2: SELECT CASE (JGP)
+				CASE(1)
+					CC = -0.774596669241483
+					WW = 0.555555555555556
+				CASE(2)
+					CC = 0.0
+					WW = 0.888888888888889
+				CASE(3)
+					CC = 0.774596669241483
+					WW = 0.555555555555556
+				END SELECT INT2
+			CASE(4)
+				INT3: SELECT CASE (JGP)
+				CASE(1)
+					CC = -0.861136311594053
+					WW = 0.347854845137454
+				CASE(2)
+					CC = -0.339981043584856
+					WW = 0.652145154862546
+				CASE(3)
+					CC = 0.339981043584856
+					WW = 0.652145154862546
+				CASE(4)
+					CC = 0.861136311594053
+					WW = 0.347854845137454
+				END SELECT INT3
+		END SELECT EXT
+		RETURN
+END SUBROUTINE GAUSS
+
+
+SUBROUTINE SOLVE
+		USE GLOBALVAR
+		INTEGER:: I, J, K, JDOF
+		REAL(2):: DNOD(2), DMX(2), DMN(2), PVAL				! We are also looking for the maximum and minimum displacement
+		
+		ALLOCATE(VDISP(NDOF))
+		! Initialization of the vector of the constant terms
+		! Load vector - > Displacement vector			
+		VDISP = VLOADS					! VDISP is intially the modified vector of known terms
+	    ! Gaussian elimination method
+			DO I=1,NDOF					! I is the counter of the dominant 
+				DO K=I+1,NDOF
+					VK(I,K) = VK(I,K)/VK(I,I)
+				END DO
+				VDISP(I) = VDISP(I)/VK(I,I)
+				VK(I,I) = 1.
+				DO J=I+1,NDOF
+					DO K = I+1,NDOF
+						VK(J,K) = VK(J,K)-VK(J,I)*VK(I,K)
+					END DO
+					VDISP(J) = VDISP(J)-VK(J,I)*VDISP(I)
+					VK(J,I) = 0.								! The lower part of the matrix is zero
+				END DO
+			END DO
+			
+		! Backward substitution
+			DO I=NDOF,1,-1
+				DO K=I+1,NDOF
+					VDISP(I) = VDISP(I)-VK(I,K)*VDISP(K)
+				END DO
+			END DO												! The vector of nodal load is defined by now
+		! Write the output
+		WRITE(12,'(/,1X, "SUMMARY OF RESULTS")')
+		WRITE(12,'(1X, "NODAL DISPLACEMENTS")')
+		WRITE(12, 101) 'NODE', 'Ux', 'Uy'
+		
+		DNOD = 0.
+		DMX = -1.E6												! Even a dispplacement of zero is considered maximum
+		DMN = 1.E6												! Even the node is restrained
+		
+		DO I = 1, NNODE
+			DO J = 1, 2
+				IF (IDOF(I,J)<0)THEN							! The node is restrained thus the displacement is zero
+					DNOD(J)=0.
+				ELSE
+					JDOF=IDOF(I,J)
+					DNOD(J)=VDISP(JDOF)
+				END IF
+				PVAL = DMX(J)
+				DMX(J) = MAX(PVAL, DNOD(J))
+				PVAL = DMN(J)
+				DMN(J) = MIN(PVAL, DNOD(J))
+			END DO
+			WRITE(12, 102) I, (DNOD(J), J=1,2)
+		END DO
+					
+		WRITE(12, 103) 'MAX', (DMX(J), J=1,2)
+		WRITE(12, 104) 'MIN', (DMN(J), J=1,2)
+		WRITE(12,'(/,1X,"DISPLACEMENTS AT DEGREE OF FREEDOM")')
+		WRITE(12, 105) 'DOF', 'DISP'
+		
+		DO I = 1, NDOF
+			WRITE(12, 106) I, VDISP(I)
+		END DO
+		
+		RETURN
+		
+		! DEFINATION OF FORMAT LISTS
+		101 FORMAT (1X, A4, 10X, A12, 5X, A12)
+		102 FORMAT (1X, I4, 10X, E12.5, 5X, E12.5)
+		103 FORMAT (1X, A4, 10X, E12.5, 5X, E12.5)
+		104 FORMAT (1X, A4, 10X, E12.5, 5X, E12.5)
+		105 FORMAT (1X, A4, 10X, A12)
+		106 FORMAT (1X, I4, 10X, E12.5)  
+		
+END SUBROUTINE SOLVE
+
+
+SUBROUTINE STRESS
+		USE GLOBALVAR
+		IMPLICIT DOUBLE PRECISION(A-H,O-Z)
+		INTEGER:: I, J, NCODE(8), NODE, IT
+		REAL(2):: PIGR = 3.14159265359, YOUNG, POIS, XX(4), YY(4), ZERO = 0.0, ONE = 1.0				! Nodal coordinates of X and Y respectively
+		REAL(2):: QS(8), BB(3,8), DD(3,3), ED1EL(NELE), TMP(8), DETJ, CSIV(4), ETAV(4)		
+		! QS: displacement, BB: Compatibility, DD: Constitutive, ED1EL(NELE): Deformation energy released by the element
+		
+		!loop cycle over the number of elements (NE), we will compute the geometry and material characteristics of each element
+		!then we will start with strain and stresses and distinguish with general and principal ones
+		!then compute in gauss points, cener of gravity and nodal points
+		!then compute also the energy released by each elements give by external loads
+		!then apply the weight procedure for strain and stresses at the node and see which elements they have in common.
+		!then the stress and displacement will be computed on each above-mentioned points
+
+		CHARACTER(LEN=80):: REC
+		OPEN(15, FILE="STRAING.txt", STATUS='UNKNOWN')
+		OPEN(16, FILE="STRESSG.txt", STATUS='UNKNOWN')
+		
+		! REWIND THE TEMP FILE(9)
+		REWIND(9)
+		! READING OF WEIGHT TYPE
+		READ(11,*)REC
+		READ(11,*)IMEAN
+			IF (IMEAN<0) THEN
+				WRITE(12, '(1X, "CODE TO WEIGHT TYPE < 0")')
+			END IF
+		WRITE(12, '(/,1X,"NODAL STRESSES/DEFORMATIONS BASED ON: ")')		      
+			IF(IMEAN == 0) THEN
+				WRITE(12, '(1X, "ARITHMETIC MEAN")')
+			END IF
+			IF(IMEAN == 1) THEN
+				WRITE(12, '(1X, "VOLUMETRIC MEAN")')
+			END IF
+			IF(IMEAN == 2) THEN
+				WRITE(12, '(1X, "ENERGY-BASED MEAN")')
+			END IF
+		! INITIALIZATION FOR ENERGY, VOLUME, STRAINS, STRESSES
+		EDTOT = 0.				! Total deformation energy from internal work
+		EDTOTW = 0.				! Total deformation energy from external work
+		VOLUMETOT = 0.			! Total volume of the structure
+		EDPTOT = 0.				! Total deformation expressed as percentage
+		
+		ALLOCATE(SIGNOD(NNODE,4))			! 4 component of which 3 are independent and 1 dependent on the problem
+		ALLOCATE(EPSNOD(NNODE,4))
+		ALLOCATE(SUMWEIGHT(NNODE))
+		
+		SUMWEIGHT = 0.
+		SIGNOD = 0.
+		EPSNOD = 0.
+		
+		! EVALUATION OF DEFORMATION ENERGY AS WORK OF EXTERNAL LOAD
+		EDTOTW = DOT_PRODUCT(VDISP, VLOADS)				! E = (S^TF)/2
+		EDTOTW = EDTOTW/2.
+		! STRAINS AND STRESSES IN EACH ELEMENT
+		DO NE = 1, NELE
+			READ(9,*)DD				! Associated with constitutive law
+			READ(9,*)ST				! Associated with stiffeness of element
+			VOLUMEELE = 0.					! VOLUME OF EACH ELEMENT
+			
+			DO K=1,4						! FOR EACH NODE OF THE ELEMENT				NODE = IN(NE, K)
+				NODE = IN(NE,K)
+				XX(K) = COORD(NODE,1)		! Four nodes of each element
+				YY(K) = COORD(NODE,2)
+				NCODE(2*K-1:2*K) = IDOF(NODE,:)		! DOF associated to the nodes 
+			END DO
+			
+			DO I=1,8
+				NDOF = NCODE(I)
+				IF(NDOF==-1) THEN			! Restrained node
+					QS(I)=0.
+				ELSE
+					QS(I)=VDISP(NDOF)		! Displacement computed in SOLVE subroutine
+				END IF
+			END DO
+			! Collect the material characterstics of each element
+			IT = ITYPE(NE)
+			YOUNG = CTYPE(IT,1)
+			POIS = CTYPE(IT,2)
+			ALPHA = CTYPE(IT,3)
+			THICK = CTYPE(IT,5)
+			EPS0 = 0.
+			! Distinguish the plane problem
+			IF(IFEA==0) THEN
+				EPS0(1) = ALPHA*THERM(NE)
+				EPS0(2) = EPS0(1)
+			ELSEIF(IFEA == 1) THEN
+				EPS0(1) = (1.+POIS)*ALPHA*THERM(NE)
+				EPS0(2) = EPS0(1)
+			END IF
+			
+			WRITE(15,'(1X, "STRAINS(GAUSS POINTS) IN ELEMENT:", 1X, I4)')NE
+			WRITE(15,101)'EPSX', 'EPSY', 'GAMMAXY', 'EPSZ', 'EPS1', 'EPS2', 'THETA'
+			WRITE(16,'(1X, "STRESSES(GAUSS POINTS) IN ELEMENT: ", 1X, I4)') NE
+			WRITE(16,101)'SIGX', 'SIGY', 'TAUXY', 'SIGZ', 'SIG1', 'SIG2', 'THETA'
+			
+			! Stress and strains on each gauss points of each element
+			NGP = NGAUSS(NE)
+			DO I = 1, NGP
+				CALL GAUSS(NGP, I, CSI, WI)
+				DO J = 1, NGP
+					CALL GAUSS(NGP, J, ETA, WJ)
+					CALL MKB(CSI, ETA, XX, YY, DETJ, BB)
+					EPS(1:3) = MATMUL(BB, QS)			! CSIe = D(e - e0)
+					SIG(1:3) = MATMUL(DD, EPS(1:3)) - MATMUL(DD, EPS0)
+					
+					! DEPENDENT STRAIN/STRESS
+					IF (IFEA == 0) THEN
+						SIG(4) = 0.
+						EPS(4) = -POIS/(1.-POIS)*(EPS(1)+EPS(2)) + ((1.+POIS)/(1.-POIS))*ALPHA*THERM(NE)
+					ELSEIF (IFEA == 1) THEN
+						EPS(4) = 0.
+						SIG(4) = POIS*((SIG(1) + SIG(2)) - YOUNG*ALPHA*THERM(NE))
+					END IF
+					
+					VOLUME = THICK*DETJ*WI*WJ		! Volume contribution from gauss points
+					VOLUMEELE = VOLUMELE*VOLUME		! Volume of the element
+					VOLUMETOT = VOLUMETOT + VOLUME	! Total volume of the system
+					
+					! PRINCIPAL STRAINS/STRESSES ON GAUSS POINTS
+					C1 = (SIG(1) + SIG(2))/2.
+					C2 = SQRT(((SIG(1)-SIG(2))/2.)**2. + SIG(3)**2.)
+					SIGP(1) = C1 + C2
+					SIGP(2) = C1 - C2
+					
+					C1 = (EPS(1) + EPS(2))/2.
+					C2 = SQRT(((EPS(1)-EPS(2))/2.)**2. + EPS(3)**2.)
+					EPSP(1) = C1 + C2
+					EPSP(2) = C1 - C2
+					! COMPUTATION OF PRINCIPAL DIRECTION THETA
+					IF(SIG(1)/=SIG(2)) THEN
+						THETA = ATAN(2.*SIG(3)/(SIG(1)-SIG(2)))/2.
+					ELSE
+						THETA = PIGR/4.
+						IF(SIG(3)<0) THEN			! For positive or negative principal direction
+							THETA = -THETA
+						END IF
+					END IF
+					! SHIFTING OF PRINCIPAL DIRECTION
+					IF(SIG(1)<SIG(2))THEN
+						THETA = THETA + PIGR/2.
+					ELSE
+						IF(SIG(3)<0) THEN
+							THETA = THETA + PIGR
+						END IF
+					END IF
+					
+					THETA = THETA*180./PIGR
+					WRITE(15, 102) (EPS(K), K = 1,4), (EPSP(K), K = 1,2), THETA
+					WRITE(16, 102) (SIG(K), K = 1,4), (SIGP(K), K = 1,2), THETA
+				END DO
+			END DO
+			
+			! STRESS, STRAIN AND PRINCIPAL COMPONENT ON CENTER OF GRAVITY
+			! PROPERTY OF CENTER OF GRAVITY
+			CALL MKB(ZERO, ZERO, XX, YY, DETJ, BB)
+			
+			EPSCG(1:3) = MATMUL(BB, QS)
+			SIGCG(1:3) = MATMUL(DD, EPSCG(1:3)) - MATMUL(DD, EPS0)
+			
+			IF(IFEA == 0) THEN
+				SIGCG(4) = 0.
+				EPSCG(4) = - POIS/(1.-POIS)*(EPSCG(1) + EPSCG(2)) + ((1.+POIS)/(1.-POIS))*ALPHA*THERM(NE)
+			ELSEIF(IFEA == 1) THEN
+				EPSCG(4) = 0.
+				SIGCG(4) = POIS*(SIGCG(1) + SIGCG(2)) - YOUNG*ALPHA*THERM(NE)
+			END IF			
+			
+			C1 = (SIGCG(1) + SIGCG(2))/2.
+			C2 = SQRT(((SIGCG(1)-SIGCG(2))/2.)**2. + SIGCG(3)**2.)
+			SIGP(1) = C1 + C2
+			SIGP(2) = C1 - C2
+			
+			C1 = (EPSCG(1) + EPSCG(2))/2.
+			C2 = SQRT(((EPSCG(1)-EPSCG(2))/2.)**2. + EPSCG(3)**2.)
+			EPSP(1) = C1 + C2
+			EPSP(2) = C1 - C2
+			
+			! COMPUTATION OF PRINCIPAL DIRECTION THETA
+					IF(SIGCG(1)/=SIGCG(2)) THEN
+						THETA = ATAN(2.*SIGCG(3)/(SIGCG(1)-SIGCG(2)))/2.
+					ELSE
+						THETA = PIGR/4.
+						IF(SIGCG(3)<0) THEN			! For positive or negative principal direction
+							THETA = -THETA
+						END IF
+					END IF
+					! SHIFTING OF PRINCIPAL DIRECTION
+					IF(SIGCG(1)<SIGCG(2))THEN
+						THETA = THETA + PIGR/2.
+					ELSE
+						IF(SIGCG(3)<0) THEN
+							THETA = THETA + PIGR
+						END IF
+					END IF
+					
+!					THETA = THETA*180./PIGR
+!					WRITE(15, 102) (EPSCG(K), K = 1,4), (EPSP(K), K = 1,2), THETA
+!					WRITE(16, 102) (SIGCG(K), K = 1,4), (SIGP(K), K = 1,2), THETA
+!				END DO
+!			END DO
+
+			! FOR STRAINS
+			WRITE(12, '(/,1X,"STRAINS (IN CENTER OF GRAVITY) IN ELEMENT: ", 1X, I4)') NE
+			WRITE(12, 101) 'EPSX', 'EPSY', 'GAMMAXY', 'EPSZ', 'EPS1', 'EPS2', 'THETA'
+			WRITE(12, 102) (EPSCG(K), K=1,4), (EPSP(K), K=1,2), THETA 
+			! FOR STRESSES
+			WRITE(12, '(/,1X,"STRESSES(IN CENTER OF GRAVITY) IN ELEMENT:",1X,I4)')NE
+			WRITE(12, 101) 'SIGX', 'SIGY', 'TAUXY', 'SIGZ', 'SIG1', 'SIG2', 'THETA'
+			WRITE(12, 102) (SIGCG(K), K=1,4), (SIGP(K), K=1,2), THETA
+
+			! PLOT STRESSES ON THE NODES OF THE ELEMENTS
+			! The coordinate of CIS and ETA are simply -/+ one
+			CSIV(1) = -ONE
+			CSIV(2) = ONE
+			CSIV(3) = ONE
+			CSIV(4) = -ONE
+			ETAV(1) = -ONE
+			ETAV(2) = -ONE
+			ETAV(3) = ONE
+			ETAV(4) = ONE
+			
+			DO K=1,4
+					CALL MKB(CSIV(K), ETAV(K), XX, YY, DETJ, BB)
+					EPSV(1:3, K) = MATMUL(BB, QS)
+					SIGV(1:3, K) = MATMUL(DD, EPSV(1:3, K)) - MATMUL(DD, EPS0)
+					IF(IFEA==0) THEN
+						SIGV(4,K) = 0.
+						EPSV(4,K) = -POIS/(1.-POIS)*(EPSV(1,K) + EPSV(2,K)) + (1.+POIS)/(1.-POIS)*ALPHA*THERM(NE)
+					ELSEIF (IFEA == 1) THEN
+						EPSV(4,K) = 0.
+						SIGV(4,K) = POIS*(SIGV(1,K) + SIGV(2, K)) - YOUNG*ALPHA*THERM(NE)
+					END IF
+			END DO
+			
+			! STRESSES AND STRAIN ON VERTICES
+			ED1EL(NE) = 0. ! Deformation energy of element
+			TMP = MATMUL(ST,QS) ! E = (S^T K S)/2
+			ED1EL(NE) = DOT_PRODUCT(QS, TMP) ! QS: Nodal displacement vector
+			ED1EL(NE) = ED1EL(NE)/2.
+			ED1ELP = ED1EL(NE)*100./EDTOTW
+			EDTOT = EDTOT + ED1EL(NE)			! SUMMING UP ALL ENERGIES OF THE ELEMENTS
+			EDPTOT = EDPTOT + ED1ELP ! EDPTOT should be 100%
+			
+			WRITE(12,'(/, 1X, "ENERGY IN ELEMENT:", 1X, I4)')NE
+			WRITE(12,103)'VOLUME', 'ENERGY', 'ENERGY%'
+			WRITE(12,104) VOLUME, ED1EL(NE), ED1ELP
+			
+			! NODAL STRAINS/STRESSES BASED ON WEIGHT AVERAGE ADOPTED
+			IF(IMEAN == 0) THEN
+				WMED = 1.
+			ELSEIF(IMEAN == 1) THEN
+				WMED = VOLUMEELE			! vOLUME OF ELEMENT
+			ELSE
+				WMED = ED1EL(NE)			! ENERGY OF ELEMENT
+			END IF
+			
+			DO I=1,4
+				NODE = IN(NE,I)
+				SUMWEIGHT(NODE) = SUMWEIGHT(NODE) + WMED  ! Sum up all over element
+				DO J = 1,4
+					EPSNOD(NODE, J) = EPSNOD(NODE, J) + EPSV(J, I)*WMED
+					SIGNOD(NODE, J) = SIGNOD(NODE, J) + SIGV(J, I)*WMED
+				END DO
+			END DO
+		END DO
+		
+		DO I = 1, NNODE
+			DO J = 1, 4
+				EPSNOD(I, J) = EPSNOD(I, J)/SUMWEIGHT(I)
+				SIGNOD(I, J) = SIGNOD(I, J)/SUMWEIGHT(I)
+			END DO
+		END DO
+		
+		WRITE(12, '(/, 1X, "MEAN OF NODAL DEFORMATION")')
+		WRITE(12,105) 'NODE', 'EPSX', 'EPSY', 'GAMMAXY'
+		
+		DO K = 1, NNODE
+			WRITE(12,106) K, (EPSNOD(K, I), I=1,3)
+		END DO
+		
+		! REPEAT THE SAME PROCEDURE FOR STRESSES
+		WRITE(12,'(/, 1X, "MEAN OF NODAL STRESSES")')
+		WRITE(12,105) 'NODE', 'SIGX', 'SIGY', 'TAUXY'
+	
+		DO K = 1, NNODE
+			WRITE(12,106) K, (SIGNOD(K, I), I=1,3)
+		END DO
+		
+		WRITE(12, '(/, 1X, "ENERGY STORED IN THE SYSTEM")')
+		WRITE(12,107) 'TOTAL VOLUME', 'TOTAL STRAIN ENERGY', 'TOTAL STRAIN ENERGY %'
+		WRITE(12,108) VOLUMETOT, EDTOT, EDPTOT
+		
+		CLOSE(15)
+		CLOSE(16)
+		
+		RETURN
+		
+		! FORMAT LIST
+		101 FORMAT (1X, A12, 10X, A12, 10X, A12, 10X, A12, 10X, A12, 10X, A12, 10X, A12)
+		102 FORMAT (1X, E12.5, 10X, E12.5, 10X, E12.5, 10X, E12.5, 10X, E12.5, 10X, E12.5, 10X, F12.2)
+		103 FORMAT (1X, A12, 10X, A12, 10X, A12)
+		104 FORMAT (1X, F12.2, 10X, E12.5, 10X, F12.2)
+		105 FORMAT (1X, A12, 10X, A12, 10X, A12, 10X, A12)
+		106 FORMAT (1X, I12, 10X, E12.5, 10X, E12.5, 10X, E12.5)
+		107 FORMAT (1X, A24, 10X, A24, 10X, A24)
+		108 FORMAT (1X, F24.2, 10X, E24.5, 10X, F24.2)
+
+END SUBROUTINE STRESS
+
+
+SUBROUTINE PLOT
+		USE GLOBALVAR
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		INTEGER :: I, J, K, NODE, NCODE(8), JDOF, IT
+		REAL(2) :: ZERO=0.0, YOUNG, POIS, XX(4), YY(4)
+		REAL(2) :: QS(8), NDISP(2), BB(3,8), DD(3,3), ED1EL(NELE), TMP(8)
+		! Rewind the temporary file
+		REWIND(9)
+		! Opening file "PLOT.dat" (for post-processing)
+		OPEN (33,FILE='PLOT.DAT',STATUS='UNKNOWN')
+		! Analysis code
+		! 0 = PLAIN STRESS
+		! 1 = PLAIN STRAIN
+		WRITE(33,*) IFEA
+		! Number of nodes and coordinates
+		WRITE(33,*) NNODE
+		
+		DO I=1,NNODE
+			WRITE(33,*) (COORD(I,J),J=1,2)
+		END DO
+		! Number of elements and incidences
+		WRITE(33,*) NELE
+			DO I=1,NELE
+				WRITE(33,*) (IN(I,J),J=1,4)
+			END DO
+			
+		DO NE=1,NELE
+			READ(9,*) DD
+			READ(9,*) ST
+	
+			DO K=1,4
+				NODE = IN(NE,K)
+				XX(K) = COORD(NODE,1)
+				YY(K) = COORD(NODE,2)
+				NCODE(2*K-1:2*K) = IDOF(NODE,:)
+			END DO
+			
+			DO I=1,8
+				JDOF = NCODE(I)
+				IF (JDOF==-1) THEN
+					QS(I) = 0.
+				ELSE
+					QS(I) = VDISP(JDOF)
+				ENDIF
+			END DO
+			
+			IT = ITYPE(NE)
+			YOUNG = CTYPE(IT,1)
+			POIS = CTYPE(IT,2)
+			ALPHA = CTYPE(IT,3)
+			EPS0 = 0.
+			
+			IF (IFEA==0) THEN
+				EPS0(1) = ALPHA*THERM(NE)
+				EPS0(2) = EPS0(1)
+			ELSEIF (IFEA==1) THEN
+				EPS0(1) = (1.+POIS)*ALPHA*THERM(NE)
+				EPS0(2) = EPS0(1)
+			ENDIF
+			
+			! Element centroid stresses/strains
+			CALL MKB(ZERO,ZERO,XX,YY,DETJ,BB)
+			EPSCG(1:3) = MATMUL(BB,QS)
+			SIGCG(1:3) = MATMUL(DD,EPSCG(1:3))- MATMUL(DD,EPS0)
+			
+			! Out-of-plane stresses/strains
+			IF (IFEA==0) THEN
+				SIGCG(4) = 0.
+				EPSCG(4) = -POIS/(1.-POIS)*(EPSCG(1)+EPSCG(2))+(1.+POIS)/(1.-POIS)*ALPHA*THERM(NE)
+				
+			ELSE
+				EPSCG(4) = 0.
+				SIGCG(4) = POIS*(SIGCG(1)+SIGCG(2))-YOUNG*ALPHA*THERM(NE)
+			ENDIF
+			
+			! Principal stresses/strains
+			C1 = (SIGCG(1)+SIGCG(2))/2.
+			C2 = SQRT(((SIGCG(1)-SIGCG(2))/2.)**2.+SIGCG(3)**2.)
+			SIGP(1) = C1+C2
+			SIGP(2) = C1-C2
+			
+			C1 = (EPSCG(1)+EPSCG(2))/2.
+			C2 = SQRT(((EPSCG(1)-EPSCG(2))/2.)**2.+EPSCG(3)**2.)
+			EPSP(1) = C1+C2
+			EPSP(2) = C1-C2
+			
+			WRITE(33,*) (EPSCG(J),J=1,4),(EPSP(J),J=1,2)
+			WRITE(33,*) (SIGCG(J),J=1,4),(SIGP(J),J=1,2)
+			
+		! End loop over the elements
+		END DO
+		! Nodal displacements
+		DO I=1,NNODE
+			DO J=1,2
+				IF (IDOF(I,J)<0) THEN
+					NDISP(J)=0.
+				ELSE
+					JDOF = IDOF(I,J)
+					NDISP(J) = VDISP(JDOF)
+				ENDIF
+			END DO
+			WRITE(33,*) (NDISP(J),J=1,2)
+		END DO
+		
+		! Strain energy = work of the external loads
+		EDTOT = 0.
+		EDTOTW = 0.
+		EDPTOT = 0.
+		EDTOTW = DOT_PRODUCT(VDISP,VLOADS)
+		EDTOTW = EDTOTW/2.
+		
+		! Element strain energy
+		REWIND(9)
+		DO NE=1,NELE
+			READ(9,*) DD
+			READ(9,*) ST
+			DO K=1,4
+				NODE = IN(NE,K)
+				NCODE(2*K-1:2*K) = IDOF(NODE,:)
+			END DO
+			DO I=1,8
+				JDOF = NCODE(I)
+				IF (JDOF==-1) THEN
+					QS(I) = 0.
+				ELSE
+					QS(I) = VDISP(JDOF)
+				ENDIF
+			END DO
+			ED1EL(NE) = 0.
+			TMP = MATMUL(ST,QS)
+			ED1EL(NE) = DOT_PRODUCT(QS,TMP)
+			ED1EL(NE) = ED1EL(NE)/2.
+			ED1ELP = ED1EL(NE)*100./EDTOTW
+			EDTOT = EDTOT+ED1EL(NE)
+			EDPTOT = EDPTOT+ED1ELP
+			WRITE(33,*) ED1ELP
+		! End loop over the elements
+		END DO
+		WRITE(33,*) EDTOT
+		! Closing file PLOT.dat
+		CLOSE(33)
+		RETURN
+END SUBROUTINE PLOT
+
+
+SUBROUTINE MESH
+		USE GLOBALVAR
+		IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+		INTEGER::I, J, K, IDNOM, IND, IND1, IND2, NSUBX, NSUBY
+		INTEGER,DIMENSION(:),ALLOCATABLE, SAVE:: NNODEX, NNODEY
+		CHARACTER(LEN=80):: REC
+		REAL(2):: VERTICES(8), CSI, ETA  	! Vertices of the domain
+		REAL(2),DIMENSION(:,:),ALLOCATABLE, SAVE:: XV, YV		! Discretized oordinates of the vertices
+		REAL(2),DIMENSION(:),ALLOCATABLE, SAVE:: DCSI, DETA
+		
+		! Read vertices
+		READ(11,*)REC
+		READ(11,*)NDOM
+			IF(NDOM<1)THEN
+				WRITE(12,'("DATA ERROR-NO. OF DOMAIN")')
+			END IF
+			
+		ALLOCATE(XV(4,NDOM), YV(4,NDOM))
+		ALLOCATE(NNODEX(NDOM), NNODEY(NDOM))
+		ALLOCATE(NELED(NDOM))
+		ALLOCATE(DCSI(NDOM), DETA(NDOM))
+		
+		WRITE(12,'(1X,"NO. OF DOMAIN = ", 1X, I3)')NDOM
+		NNODE = 0
+		NELE = 0 
+		
+		DO K=1,NDOM
+			READ(11,*) IDNOM, VERTICES(1:8), NSUBX, NSUBY
+			NNODEX(K) = NSUBX + 1
+			NNODEY(K) = NSUBY + 1
+			NNODE = NNODE + NNODEX(K)*NNODEY(K)
+			NELE = NELE + NSUBX*NSUBY
+			
+			DO I = 1,4
+				XV(I,K) = VERTICES(2*I - 1)
+				YV(I,K) = VERTICES(2*I)
+			END DO
+		
+			DCSI(K) = 2./NSUBX				! The length is 2 [-1 to 1]
+			DETA(K) = 2./NSUBY
+		END DO
+		
+		! Coordinates
+		ALLOCATE(COORD(NNODE,2))
+		COORD = 0
+		IND = 0	
+		
+		! Using the shape function in otder to find the coordinates on the global reference system
+		DO K = 1, NDOM
+			DO I = 1, NNODEX(K)
+				DO J = 1, NNODEY(K)
+					IND = IND + 1
+					CSI = -1. + (I-1)*DCSI(K)
+					ETA = -1. + (J-1)*DETA(K)
+					COORD(IND,1) = FF4( XV(:,K), CSI, ETA)
+					COORD(IND,2) = FF4( YV(:,K), CSI, ETA)
+				END DO
+			END DO
+		END DO
+		
+		! Numbering of the nodes and building the matrix of incedence
+		! Incidences
+		IND = 1
+		IND1 = 1
+		IND2 = IND1					! maintain counter-clockwise counting
+		
+		ALLOCATE(IN(NELE,4))
+		IN = 0
+		NNODED = 0
+		
+		DO K = 1,NDOM
+			NED = 0
+			DO I = 1, NNODEY(K)-1
+				DO J = 1, NNODEX(K)-1
+					IN(IND,1) = IND1
+					IN(IND,2) = IND1 + NNODEY(K)
+					IN(IND,3) = IND1 + NNODEY(K) + 1
+					IN(IND,4) = IND1 + 1
+					IND = IND + 1
+					IND1 = IND2 + (J)*NNODEY(K)
+					NED = NED + 1
+				END DO
+				IND2 = IND2 + 1
+				IND1 = IND2
+			END DO
+			NELED(K) = NED
+			NNODED = NNODED + NNODEY(K)*NNODEX(K)
+			IND2 = NNODED + 1
+			IND1 = IND2
+		END DO
+		
+	RETURN
+	! FORMAT LIST
+END SUBROUTINE MESH
+		

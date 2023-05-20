@@ -1,0 +1,142 @@
+
+INPUT DATA FOR TYPE OF PROBLEM
+
+ PLANE STRESS PROBLEM
+
+ STANDARD MESH
+
+GEOMETRY
+
+ NO. OF NODES =    4
+ NODE               COORD_X          COORD_Y
+    1                  0.00             0.00
+    2                 10.00             0.00
+    3                 12.00             6.00
+    4                  2.00             4.00
+
+ NO. OF ELEMENT TYPE =    1
+ TYPE                 YOUNG             POIS          THERMAL           WEIGHT        THICKNESS
+    1           30000000.00             0.25             0.00             0.00             1.00
+
+ NO. OF ELEMENT =     1
+ ELEM                    N1               N2               N3               N4     ELEMENT TYPE      GAUSS POINT
+    1                     1                2                3                4                1                2
+
+RESTRAINTS/LINKS
+
+ NO. OF RESTRAINTS =    4
+ NODE             DIRECTION
+    1                     1
+    1                     2
+    2                     1
+    2                     2
+
+ NO. OF LINKS =    0
+
+ DOF MATRIX
+ Node                    Ux               Uy
+    1                    -1               -1
+    2                    -1               -1
+    3                     1                2
+    4                     3                4
+
+ NO. OF LOADS =    2
+ NODE                   DIR            FORCE
+    3                     1           100.00
+    3                     2          -100.00
+
+ VECTOR OF NODAL LOADS
+  DOF                 FORCE
+    1                100.00
+    2               -100.00
+    3                  0.00
+    4                  0.00
+
+ NO. OF SURFACE LOADS =    1
+ SURF                    N1               N2              Px1              Px2              Py1              Py2
+    1                     3                4             0.00             0.00            10.00            10.00
+
+ NO. OF ELEMENT WITH THERMAL LOADS =    0
+
+
+    DOF                 FORCE
+      1              0.10E+03
+      2             -0.10E+03
+      3              0.11E-43
+      4              0.38E-43
+
+ STIFFNESS MATRIX
+
+  ROW             COLUMN  1
+      1              0.14E+08
+      2              0.51E+07
+      3             -0.15E+07
+      4             -0.33E+07
+
+  ROW             COLUMN  2
+      1              0.51E+07
+      2              0.29E+08
+      3             -0.10E+07
+      4              0.88E+07
+
+  ROW             COLUMN  3
+      1             -0.15E+07
+      2             -0.10E+07
+      3              0.15E+08
+      4             -0.52E+07
+
+  ROW             COLUMN  4
+      1             -0.33E+07
+      2              0.88E+07
+      3             -0.52E+07
+      4              0.22E+08
+
+ SUMMARY OF RESULTS
+ NODAL DISPLACEMENTS
+ NODE                    Ux               Uy
+    1           0.00000E+00      0.00000E+00
+    2           0.00000E+00      0.00000E+00
+    3           0.11062E-04     -0.68653E-05
+    4           0.22993E-05      0.50014E-05
+  MAX           0.11062E-04      0.50014E-05
+  MIN           0.00000E+00     -0.68653E-05
+
+ DISPLACEMENTS AT DEGREE OF FREEDOM
+  DOF                  DISP
+    1           0.11062E-04
+    2          -0.68653E-05
+    3           0.22993E-05
+    4           0.50014E-05
+
+ NODAL STRESSES/DEFORMATIONS BASED ON: 
+ ARITHMETIC MEAN
+
+ STRAINS (IN CENTER OF GRAVITY) IN ELEMENT:     1
+         EPSX                  EPSY               GAMMAXY                  EPSZ                  EPS1                  EPS2                 THETA
+  0.31720E-06          -0.44139E-06           0.97569E-06           0.41395E-07           0.98473E-06          -0.11089E-05                  0.45
+
+ STRESSES(IN CENTER OF GRAVITY) IN ELEMENT:    1
+         SIGX                  SIGY                 TAUXY                  SIGZ                  SIG1                  SIG2                 THETA
+  0.66194E+01          -0.11587E+02           0.11708E+02           0.00000E+00           0.12347E+02          -0.17314E+02                  0.45
+
+ ENERGY IN ELEMENT:    1
+       VOLUME                ENERGY               ENERGY%
+        13.15           0.89636E-03                100.00
+
+ MEAN OF NODAL DEFORMATION
+         NODE                  EPSX                  EPSY               GAMMAXY
+            1           0.00000E+00           0.12503E-05           0.57482E-06
+            2           0.00000E+00          -0.11442E-05           0.18436E-05
+            3           0.54378E-06          -0.16498E-05           0.12620E-05
+            4           0.84587E-06           0.73000E-06          -0.47088E-06
+
+ MEAN OF NODAL STRESSES
+         NODE                  SIGX                  SIGY                 TAUXY
+            1           0.10003E+02           0.40011E+02           0.68979E+01
+            2          -0.91538E+01          -0.36615E+02           0.22124E+02
+            3           0.42027E+01          -0.48442E+02           0.15144E+02
+            4           0.32908E+02           0.30127E+02          -0.56505E+01
+
+ ENERGY STORED IN THE SYSTEM
+             TOTAL VOLUME               TOTAL STRAIN ENERGY             TOTAL STRAIN ENERGY %
+                    48.00                       0.89636E-03                            100.00

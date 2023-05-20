@@ -1,0 +1,68 @@
+
+2D ISOP4 FINITE ELEMENT [m, kN]
+
+TYPE OF PROBLEM(0 = PLANE STRESS, 1 = PLANE STRAIN)
+0
+
+TYPE OF MESH <0 = STANDARD, 1 = AUTOMATIC>
+1
+
+DOMAINS<NDom><Dom, X1, Y1, X2, Y2, X3, Y3, X4, Y4, NSubx, NSuby>
+1
+1, 0, 0, 4.4, 0, 4.4, 8, 0, 8, 22, 40
+
+CHARACTERSTICS<NType><Type, E, v, alpha, self-weight, t>
+1
+1, 37000000, 0.20, 0, 0, 1
+
+PROPERTY OF DOMAIN<IDDom, Type, NGauss>
+1, 1, 2
+
+RESTRAINTS<NRes><Node, Dir>
+9
+1, 1
+1, 2
+42, 1
+42, 2
+83, 1
+83, 2
+821, 2
+862, 2
+903, 2
+
+LINKS<NLinks><Master, Slave, Dir>
+0
+
+NODAL LOADS<NLoads><Node, Dir, Force>
+0
+
+SURFACE LOADS<NLoads><IDSide, N1, N2, Px1, Px2, Py1, Py2>
+20
+1, 82, 123, 0, 0, -25, -25
+2, 123, 164, 0, 0, -25, -25
+3, 164, 205, 0, 0, -25, -25
+4, 205, 246, 0, 0, -25, -25
+5, 246, 287, 0, 0, -25, -25
+6, 287, 328, 0, 0, -25, -25
+7, 328, 369, 0, 0, -25, -25
+8, 369, 410, 0, 0, -25, -25
+9, 410, 451, 0, 0, -25, -25
+10, 451, 492, 0, 0, -25, -25
+11, 492, 533, 0, 0, -25, -25
+12, 533, 574, 0, 0, -25, -25
+13, 574, 615, 0, 0, -25, -25
+14, 615, 656, 0, 0, -25, -25
+15, 656, 697, 0, 0, -25, -25
+16, 697, 738, 0, 0, -25, -25
+17, 738, 779, 0, 0, -25, -25
+18, 779, 820, 0, 0, -25, -25
+19, 820, 861, 0, 0, -25, -25
+20, 861, 902, 0, 0, -25, -25
+
+THERMAL LOADS<Nloads><Elem, DT>
+0
+
+NODAL AVARAGING <0 = Arithmetic, 1 = Volumetric, 2 = Energy>
+0
+
+
