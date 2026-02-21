@@ -1,0 +1,17 @@
+# Build outputs
+*.exe
+*.o
+*.mod
+
+# Temporary and backup files
+*.tmp
+*.bak
+
+# Runtime artifacts
+MKK.tmp
+PLOT.DAT
+STRAING.txt
+STRESSG.txt
+
+# NAG Fortran builder files
+*.fif
