@@ -6,19 +6,19 @@ A Fortran 90 finite element analysis package for **2D frame structures** and **i
 
 ### Frame Analysis — Bridge Deformed Shape
 
-![Bridge deformed shape under load](CSA_2021_BENCHMARKS/Figures/bridge-roller-loadcase2-deformed.png)
+![Bridge deformed shape under load](CSA_2021_BENCHMARKS/Figures/bridge-roller-loadcase2-deformed - II.png)
 
 *Multi-span bridge structure with roller supports showing the deformed shape (cyan) against the undeformed geometry (white dashed). Max vertical displacement: 9.98 mm.*
 
 ### ISOP4 Element Analysis — Mesh Deformation
 
-![ISOP4 deformed mesh](CSA_2021_ISOP4/Figures/plate-deformed-shape.png)
+![ISOP4 deformed mesh](CSA_2021_ISOP4/Figures/plate-deformed-shape - II.png)
 
 *1600-element quadrilateral mesh (1681 nodes) showing deformed shape (red) overlaid on the original geometry (cyan) under applied loading.*
 
 ### ISOP4 Element Analysis — Stress Contour (SIGx)
 
-![Stress contour SIGx](CSA_2021_ISOP4/Figures/plate-stress-sigx.png)
+![Stress contour SIGx](CSA_2021_ISOP4/Figures/plate-stress-sigx - II.png)
 
 *Normal stress distribution (SIGx) across the plate, with color-mapped contours ranging from +55 to -275 kN/m². Stress concentration visible at the bottom support region.*
 
